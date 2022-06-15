@@ -1,0 +1,21 @@
+{
+    "project_name":       "bootloader",
+    "project_path":       "D:/Espressif32/frameworks/esp-idf-v4.4/components/bootloader/subproject",
+    "build_dir":          "E:/esp32_3c/build/bootloader",
+    "config_file":        "E:/esp32_3c/sdkconfig",
+    "config_defaults":    "",
+    "app_elf":            "bootloader.elf",
+    "app_bin":            "bootloader.bin",
+    "git_revision":       "v4.4",
+    "target":             "esp32c3",
+    "rev":                "",
+    "phy_data_partition": "",
+    "monitor_baud" :      "115200",
+    "monitor_toolprefix": "riscv32-esp-elf-",
+    "config_environment" : {
+        "COMPONENT_KCONFIGS" : "D:/Espressif32/frameworks/esp-idf-v4.4/components/efuse/Kconfig;D:/Espressif32/frameworks/esp-idf-v4.4/components/esp32c3/Kconfig;D:/Espressif32/frameworks/esp-idf-v4.4/components/esp_common/Kconfig;D:/Espressif32/frameworks/esp-idf-v4.4/components/esp_hw_support/Kconfig;D:/Espressif32/frameworks/esp-idf-v4.4/components/esp_system/Kconfig;D:/Espressif32/frameworks/esp-idf-v4.4/components/freertos/Kconfig;D:/Espressif32/frameworks/esp-idf-v4.4/components/hal/Kconfig;D:/Espressif32/frameworks/esp-idf-v4.4/components/log/Kconfig;D:/Espressif32/frameworks/esp-idf-v4.4/components/newlib/Kconfig;D:/Espressif32/frameworks/esp-idf-v4.4/components/spi_flash/Kconfig",
+        "COMPONENT_KCONFIGS_PROJBUILD" : "D:/Espressif32/frameworks/esp-idf-v4.4/components/bootloader/Kconfig.projbuild;D:/Espressif32/frameworks/esp-idf-v4.4/components/esp_rom/Kconfig.projbuild;D:/Espressif32/frameworks/esp-idf-v4.4/components/esptool_py/Kconfig.projbuild;D:/Espressif32/frameworks/esp-idf-v4.4/components/partition_table/Kconfig.projbuild"
+    },
+    "build_components" : [ "bootloader", "bootloader_support", "efuse", "esp32c3", "esp_common", "esp_hw_support", "esp_rom", "esp_system", "esptool_py", "freertos", "hal", "log", "main", "micro-ecc", "newlib", "partition_table", "riscv", "soc", "spi_flash", "" ],
+    "build_component_paths" : [ "D:/Espressif32/frameworks/esp-idf-v4.4/components/bootloader", "D:/Espressif32/frameworks/esp-idf-v4.4/components/bootloader_support", "D:/Espressif32/frameworks/esp-idf-v4.4/components/efuse", "D:/Espressif32/frameworks/esp-idf-v4.4/components/esp32c3", "D:/Espressif32/frameworks/esp-idf-v4.4/components/esp_common", "D:/Espressif32/frameworks/esp-idf-v4.4/components/esp_hw_support", "D:/Espressif32/frameworks/esp-idf-v4.4/components/esp_rom", "D:/Espressif32/frameworks/esp-idf-v4.4/components/esp_system", "D:/Espressif32/frameworks/esp-idf-v4.4/components/esptool_py", "D:/Espressif32/frameworks/esp-idf-v4.4/components/freertos", "D:/Espressif32/frameworks/esp-idf-v4.4/components/hal", "D:/Espressif32/frameworks/esp-idf-v4.4/components/log", "D:/Espressif32/frameworks/esp-idf-v4.4/components/bootloader/subproject/main", "D:/Espressif32/frameworks/esp-idf-v4.4/components/bootloader/subproject/components/micro-ecc", "D:/Espressif32/frameworks/esp-idf-v4.4/components/newlib", "D:/Espressif32/frameworks/esp-idf-v4.4/components/partition_table", "D:/Espressif32/frameworks/esp-idf-v4.4/components/riscv", "D:/Espressif32/frameworks/esp-idf-v4.4/components/soc", "D:/Espressif32/frameworks/esp-idf-v4.4/components/spi_flash", "" ]
+}
