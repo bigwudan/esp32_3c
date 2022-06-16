@@ -57,10 +57,15 @@ void _lv_timer_create(void){
     esp_err_t err = esp_timer_create(&lvgl_timer, &lvgl_timer_handle);
     err = esp_timer_start_periodic(lvgl_timer_handle, 1000);
 }
-
+extern char test_show_buf[124];
 lv_obj_t *t_obj;
+
+lv_obj_t *label;
+
 void _my_task(){
     static int idx = 0;
+    lv_label_set_text(label, test_show_buf);  // 显示数字
+    printf("show_buf=%s\n", test_show_buf);
     if(idx%2 == 0){
        // lv_obj_set_style_local_bg_color(t_obj, 0, 0, 11);
  lv_obj_set_style_bg_color(t_obj,lv_palette_main(LV_PALETTE_YELLOW), LV_PART_MAIN); 
@@ -99,6 +104,13 @@ void app_main(void)
     t_obj = lv_obj_create(lv_scr_act());
     lv_obj_set_size(t_obj, 240,240);
     lv_obj_set_pos(t_obj, 0, 0);
+
+
+    label =  lv_label_create(lv_scr_act());
+    lv_label_set_text(label, test_show_buf);  // 显示数字
+    lv_obj_center(label);
+
+
     //lv_task_create(_my_task, 500, LV_TASK_PRIO_MID, NULL);
 
 
