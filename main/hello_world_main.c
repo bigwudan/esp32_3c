@@ -118,7 +118,7 @@ void app_main(void)
 
     label_2 =  lv_label_create(lv_scr_act());
     lv_label_set_text(label_2, test_show_http_buf);  // 显示数字
-    lv_obj_set_pos(t_obj, 30, 50);
+    lv_obj_set_pos(label_2, 20, 40);
 
     //lv_task_create(_my_task, 500, LV_TASK_PRIO_MID, NULL);
     while(1){
