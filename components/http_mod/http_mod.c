@@ -50,6 +50,8 @@
 
 const char *str_html = "<form action=\"hello\" method=\"get\"><p>First name: <input type=\"text\" name=\"query1\" /></p><input type=\"submit\" value=\"Submit\" /></form>";
 
+char test_show_http_buf[124] = "wait http cmd";
+
 //http
 static void _http_app();
 
@@ -151,6 +153,8 @@ static esp_err_t hello_get_handler(httpd_req_t *req)
             /* Get value of expected key from query string */
             if (httpd_query_key_value(buf, "query1", param, sizeof(param)) == ESP_OK) {
                 //ESP_LOGI(TAG, "Found URL query parameter => query1=%s", param);
+
+                strcpy(test_show_http_buf, param);
             }
             if (httpd_query_key_value(buf, "query3", param, sizeof(param)) == ESP_OK) {
                 //ESP_LOGI(TAG, "Found URL query parameter => query3=%s", param);
