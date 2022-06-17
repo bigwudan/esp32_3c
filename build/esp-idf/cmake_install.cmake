@@ -121,6 +121,7 @@ if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   include("E:/esp32_3c/build/esp-idf/wifi_provisioning/cmake_install.cmake")
   include("E:/esp32_3c/build/esp-idf/main/cmake_install.cmake")
   include("E:/esp32_3c/build/esp-idf/bluetooth/cmake_install.cmake")
+  include("E:/esp32_3c/build/esp-idf/http_mod/cmake_install.cmake")
   include("E:/esp32_3c/build/esp-idf/lcd_dev/cmake_install.cmake")
   include("E:/esp32_3c/build/esp-idf/lvgl/cmake_install.cmake")
 
