@@ -671,6 +671,13 @@ E:/esp32_3c/build/esp-idf/http_mod/CMakeFiles/edit_cache.dir
 E:/esp32_3c/build/esp-idf/http_mod/CMakeFiles/rebuild_cache.dir
 E:/esp32_3c/build/esp-idf/http_mod/CMakeFiles/list_install_components.dir
 E:/esp32_3c/build/esp-idf/http_mod/CMakeFiles/install/strip.dir
+E:/esp32_3c/build/esp-idf/knob/CMakeFiles/install/strip.dir
+E:/esp32_3c/build/esp-idf/knob/CMakeFiles/__idf_knob.dir
+E:/esp32_3c/build/esp-idf/knob/CMakeFiles/install/local.dir
+E:/esp32_3c/build/esp-idf/knob/CMakeFiles/install.dir
+E:/esp32_3c/build/esp-idf/knob/CMakeFiles/edit_cache.dir
+E:/esp32_3c/build/esp-idf/knob/CMakeFiles/rebuild_cache.dir
+E:/esp32_3c/build/esp-idf/knob/CMakeFiles/list_install_components.dir
 E:/esp32_3c/build/esp-idf/lcd_dev/CMakeFiles/install/local.dir
 E:/esp32_3c/build/esp-idf/lcd_dev/CMakeFiles/install.dir
 E:/esp32_3c/build/esp-idf/lcd_dev/CMakeFiles/edit_cache.dir
