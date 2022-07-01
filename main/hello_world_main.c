@@ -144,8 +144,8 @@ void app_main(void)
     enum knob_state knob_res; 
  
     knob_init();
-    // bluetooth_app();
-    // fast_scan();
+    bluetooth_app();
+    fast_scan();
     lcd_dev_init();
     lv_init();
     lv_port_disp_init();
