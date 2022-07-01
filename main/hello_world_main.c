@@ -136,16 +136,16 @@ static void _run_bg(){
 
 void app_main(void)
 {
-    printf("***********app_main now.\n");
-    printf("***********app_main now.\n");
-    printf("***********app_main now.\n");
+    printf("******1111*****app_main now.\n");
+    printf("******1111*****app_main now.\n");
+    printf("******1111*****app_main now.\n");
 
 
-
+    enum knob_state knob_res; 
  
     knob_init();
-    bluetooth_app();
-    fast_scan();
+    // bluetooth_app();
+    // fast_scan();
     lcd_dev_init();
     lv_init();
     lv_port_disp_init();
@@ -167,7 +167,17 @@ void app_main(void)
     while(1){
 	    vTaskDelay(20 / portTICK_PERIOD_MS);
         
-        knob_get_state();
+        knob_res = knob_get_state();
+        if(knob_res != knob_still){
+
+            if(knob_res == knob_right){
+
+                printf("**********************************knob_right\n");
+            }else{
+                printf("**********************************knob_left\n");
+            }
+            
+        }
         lv_task_handler();
         //_test_task();
         _my_task();

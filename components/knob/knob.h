@@ -3,8 +3,17 @@
 
 #include <stdio.h>
 
+typedef enum knob_state
+{
+    knob_still,
+    knob_right,
+    knob_left,
+    
+};
+
+
 void knob_init();
 
-int knob_get_state();
+enum knob_state knob_get_state();
 
 #endif
