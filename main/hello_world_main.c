@@ -42,6 +42,8 @@
 
 #include "knob.h"
 
+#include "knob_task.h"
+
 
 
 /* GPIO Example
@@ -143,7 +145,9 @@ void app_main(void)
 
     enum knob_state knob_res; 
  
-    knob_init();
+    //knob_init();
+    knob_task_init();
+
     bluetooth_app();
     fast_scan();
     lcd_dev_init();
@@ -167,7 +171,8 @@ void app_main(void)
     while(1){
 	    vTaskDelay(20 / portTICK_PERIOD_MS);
         
-        knob_res = knob_get_state();
+        //knob_res = knob_get_state();
+        knob_res =knob_task_get_state();
         if(knob_res != knob_still){
 
             if(knob_res == knob_right){
