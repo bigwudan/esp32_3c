@@ -25,7 +25,7 @@
 //u8  tstVar ;
 
 //间隔多久上报一次
-#define DURING_TIEM 1
+#define DURING_TIEM 8
 
 #define GPIO_INPUT_IO_0     0
 #define GPIO_INPUT_IO_1     1
@@ -74,15 +74,16 @@ static void IRAM_ATTR gpio_isr_handler(void* arg)
    uint32_t tick = xTaskGetTickCount();
 
 
-   if(_old_tick != tick){
+
     uint8_t a_level = gpio_get_level(GPIO_INPUT_IO_0);
     uint8_t b_level = gpio_get_level(GPIO_INPUT_IO_1);
     res = EncoderScan(a_level, b_level);
     if(res > 0){
-      msg.port_io = res;
-      xQueueSendFromISR(gpio_evt_queue, &msg, NULL);
+        msg.port_io = res;
+        msg.tick = tick;
+        xQueueSendFromISR(gpio_evt_queue, &msg, NULL);
     }
-   }
+  
    _old_tick = tick;
     
 
@@ -266,7 +267,7 @@ uint8_t EncoderScan(unsigned int gpio_A, unsigned int gpio_B)
 
 enum knob_state knob_task_get_state(){
    int flag = 0;
-   enum knob_state res = 0;
+   enum knob_state res = knob_still;
    static uint32_t old_tick = 0;
    uint32_t cur_tick = 0;
    msg_data_t msg = {0};
@@ -274,27 +275,27 @@ enum knob_state knob_task_get_state(){
    cur_tick = xTaskGetTickCount();
    flag = xQueueReceive(gpio_evt_queue, &msg, NULL);
    if(flag > 0){
-      printf("task_get[%d]\n",msg.port_io );
+        res = msg.port_io;
+
+
+        //除去短时间上报
+        if(res != knob_still){
+
+            if((old_tick + DURING_TIEM)  <= cur_tick ){
+            
+                old_tick = cur_tick;
+            }else{
+
+                res = knob_still;
+            
+            }
+
+        }
+
 
 
    }
-   res = msg.port_io;
 
 
-      //除去短时间上报
-      if(res != knob_still){
-         //printf("old=[%d],new[%d]\n",old_tick + DURING_TIEM,cur_tick );
-         if((old_tick + DURING_TIEM)  <= cur_tick ){
-            
-            old_tick = cur_tick;
-         }else{
-
-            res = knob_still;
-            
-         }
-
-      }
-
-
-   return knob_still;
+   return res;
 }

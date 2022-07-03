@@ -6,8 +6,8 @@
 typedef enum knob_state
 {
     knob_still,
-    knob_right,
     knob_left,
+    knob_right,
     
 };
 
