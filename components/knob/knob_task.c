@@ -18,6 +18,8 @@
 
 #include "knob_task.h"
 
+#include "driver/timer.h"
+
 
 //#include "EncoderScan.h"
 //#include "SWM320.h"
@@ -31,6 +33,8 @@
 #define GPIO_INPUT_IO_1     1
 #define GPIO_INPUT_PIN_SEL  ((1ULL<<GPIO_INPUT_IO_0) | (1ULL<<GPIO_INPUT_IO_1))
 #define ESP_INTR_FLAG_DEFAULT 0
+
+
 
 uint8_t xcnt1;    //编码器1的超时计数器
 uint8_t ecdRcnt1; //右旋相位计数器
@@ -46,6 +50,9 @@ typedef struct{
 
 }msg_data_t;
 
+
+static void _tg_timer_init(int group, int timer, bool auto_reload, int timer_interval_sec);
+
 //u8 encodeEvent;		//此变量用来存储编码器的动作，详见 ENC_1_R 等相关定义
 //在检测到编码器动作时，将此参数传给应用层， 然后立即清零此变量。
 
@@ -60,6 +67,7 @@ void EncodeScanTimeOutCtrl(void)
         ecdRcnt1 = 0;
         ecdLcnt1 = 0;
     }
+   
 }
 
 
@@ -126,7 +134,7 @@ void knob_task_init(){
     gpio_isr_handler_add(GPIO_INPUT_IO_0, gpio_isr_handler, (void*) GPIO_INPUT_IO_0);
 
 
-
+    _tg_timer_init(TIMER_GROUP_0, TIMER_0, true, 100);
 
   
 }
@@ -273,6 +281,7 @@ enum knob_state knob_task_get_state(){
    msg_data_t msg = {0};
 
    cur_tick = xTaskGetTickCount();
+
    flag = xQueueReceive(gpio_evt_queue, &msg, NULL);
    if(flag > 0){
         res = msg.port_io;
@@ -297,5 +306,52 @@ enum knob_state knob_task_get_state(){
    }
 
 
+
+
    return res;
+}
+
+
+static bool IRAM_ATTR timer_group_isr_callback(void *args)
+{
+
+    EncodeScanTimeOutCtrl();
+    return pdTRUE; // return whether we need to yield at the end of ISR
+}
+
+/**
+ * @brief Initialize selected timer of timer group
+ *
+ * @param group Timer Group number, index from 0
+ * @param timer timer ID, index from 0
+ * @param auto_reload whether auto-reload on alarm event
+ * @param timer_interval_sec interval of alarm
+ */
+static void _tg_timer_init(int group, int timer, bool auto_reload, int timer_interval_sec)
+{
+#define TIMER_DIVIDER         (16)  //  Hardware timer clock divider
+#define TIMER_SCALE           (TIMER_BASE_CLK / TIMER_DIVIDER / 1000)  // convert counter value to seconds
+
+    /* Select and initialize basic parameters of the timer */
+    timer_config_t config = {
+        .divider = TIMER_DIVIDER,
+        .counter_dir = TIMER_COUNT_UP,
+        .counter_en = TIMER_PAUSE,
+        .alarm_en = TIMER_ALARM_EN,
+        .auto_reload = auto_reload,
+    }; // default clock source is APB
+    timer_init(group, timer, &config);
+
+    /* Timer's counter will initially start from value below.
+       Also, if auto_reload is set, this value will be automatically reload on alarm */
+    timer_set_counter_value(group, timer, 0);
+
+    /* Configure the alarm value and the interrupt on alarm. */
+    timer_set_alarm_value(group, timer, timer_interval_sec * TIMER_SCALE);
+    timer_enable_intr(group, timer);
+
+
+    timer_isr_callback_add(group, timer, timer_group_isr_callback, NULL, 0);
+
+    timer_start(group, timer);
 }
