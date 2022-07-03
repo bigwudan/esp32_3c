@@ -24,12 +24,12 @@
 
 
 
-#define SDA 3
-#define SCK 2
-#define CS 7
-#define IO_CD 6
-#define IO_BL 11
-#define IO_RESET 10
+#define SDA 7
+#define SCK 6
+#define CS 10
+#define IO_CD 4
+#define IO_BL 3
+#define IO_RESET 5
 
 
 #define delay_lcd(A) do{vTaskDelay((A) / portTICK_PERIOD_MS);}while(0)
