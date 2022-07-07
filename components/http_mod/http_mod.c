@@ -276,8 +276,16 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
 
         // msg_id = esp_mqtt_client_subscribe(client, "$sys/534093/test_no_0/dp/post/json/+", 0);
         // ESP_LOGI(TAG, "sent subscribe successful, msg_id=%d", msg_id);
+        //$sys/534093/test_no_0/cmd/request/+ 
+
+        //注册命令
+        msg_id = esp_mqtt_client_subscribe(client, "$sys/534093/test_no_0/cmd/request/+", 0);
+        ESP_LOGI(TAG, "sent subscribe successful, msg_id=%d", msg_id);
+#if 0     
         msg_id = esp_mqtt_client_publish(client, "$sys/534093/test_no_0/dp/post/json", "{\"id\":123,\"dp\":{\"temp\":[{\"v\":99}]}}", 0, 0, 0);
         ESP_LOGI(TAG, "publish msg_id[%d]\n", msg_id);
+
+#endif        
         break;
     case MQTT_EVENT_DISCONNECTED:
         ESP_LOGI(TAG, "MQTT_EVENT_DISCONNECTED");
