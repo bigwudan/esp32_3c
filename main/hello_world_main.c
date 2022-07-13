@@ -44,6 +44,7 @@
 
 #include "knob_task.h"
 
+#include "i2c_sht20.h"
 
 
 /* GPIO Example
@@ -62,6 +63,9 @@
 #include "freertos/task.h"
 #include "freertos/queue.h"
 #include "driver/gpio.h"
+
+
+
 
 
 
@@ -145,6 +149,9 @@ void app_main(void)
 
     enum knob_state knob_res; 
  
+    //初始化i2c
+    i2c_master_init();
+
     //knob_init();
     knob_task_init();
 
@@ -170,6 +177,8 @@ void app_main(void)
     //lv_task_create(_my_task, 500, LV_TASK_PRIO_MID, NULL);
     while(1){
 	    vTaskDelay(20 / portTICK_PERIOD_MS);
+
+        i2c_sht20_task();
         
         //knob_res = knob_get_state();
         knob_res =knob_task_get_state();

@@ -71,6 +71,7 @@ $<TARGET_FILE:__idf_wifi_provisioning>
 $<TARGET_FILE:__idf_main>
 $<TARGET_FILE:__idf_bluetooth>
 $<TARGET_FILE:__idf_http_mod>
+$<TARGET_FILE:__idf_i2c_sht20>
 $<TARGET_FILE:__idf_knob>
 $<TARGET_FILE:__idf_lcd_dev>
 $<TARGET_FILE:__idf_lvgl>
