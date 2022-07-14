@@ -68,7 +68,7 @@ esp_err_t i2c_master_init(void)
 
     printf("xxxxxxxxxxxxxxxxx[%d]xx\n",time_int );
 
-    i2c_set_timeout(i2c_master_port, 100);
+    i2c_set_timeout(i2c_master_port, 1000);
 
     return i2c_driver_install(i2c_master_port, conf.mode, I2C_MASTER_RX_BUF_DISABLE, I2C_MASTER_TX_BUF_DISABLE, 0);
 }
@@ -106,7 +106,44 @@ static esp_err_t i2c_master_write_slave(i2c_port_t i2c_num, uint8_t *data_wr, si
     return ret;
 }
 
-static esp_err_t i2c_master_read_slave(i2c_port_t i2c_num, uint8_t *data_rd, size_t size)
+
+static esp_err_t i2c_master_read_slave(i2c_port_t i2c_num, uint8_t *data_rd, size_t size){
+    if (size == 0)
+    {
+        return ESP_OK;
+    }
+
+    i2c_cmd_handle_t cmd = i2c_cmd_link_create();
+    i2c_master_start(cmd);
+    i2c_master_write_byte(cmd, (ESP_SLAVE_ADDR << 1) | READ_BIT, ACK_CHECK_EN);
+
+    if (size > 1)
+    {
+        i2c_master_read(cmd, data_rd, size - 1, ACK_VAL);
+    }
+
+    i2c_master_read_byte(cmd, data_rd + size - 1, NACK_VAL);
+    i2c_master_stop(cmd);
+    esp_err_t ret = i2c_master_cmd_begin(i2c_num, cmd, 1000 / portTICK_RATE_MS);
+    i2c_cmd_link_delete(cmd);
+
+
+    // vTaskDelay(70 / portTICK_RATE_MS);
+    // cmd = i2c_cmd_link_create();
+    // if (size > 1)
+    // {
+    //     i2c_master_read(cmd, data_rd, size - 1, ACK_VAL);
+    // }
+
+    // i2c_master_read_byte(cmd, data_rd + size - 1, NACK_VAL);
+    // i2c_master_stop(cmd);
+    // ret = i2c_master_cmd_begin(i2c_num, cmd, 1000 / portTICK_RATE_MS);
+    // i2c_cmd_link_delete(cmd);    
+    return ret;
+
+}
+
+static esp_err_t i2c_master_read_slave_bk(i2c_port_t i2c_num, uint8_t *data_rd, size_t size)
 {
     if (size == 0)
     {
@@ -138,38 +175,24 @@ float i2c_sht20_get_temperature(){
     float temp = 0;
     esp_err_t err;
 
-    data_wr[0] = HOLD_AH_START;
+    data_wr[0] = 0xF3;
     err = i2c_master_write_slave(I2C_MASTER_NUM, data_wr, strlen((char *)data_wr));
     printf("i2c_master_write_slave[%d]\n",err );
-    vTaskDelay(30 / portTICK_RATE_MS);
+    vTaskDelay(70 / portTICK_RATE_MS);
     err = i2c_master_read_slave(I2C_MASTER_NUM, data_rx, 3);
     printf("i2c_master_read_slave[%d]\n",err );
-    if(err != ESP_OK){
-        vTaskDelay(70 / portTICK_RATE_MS);
-        
-        err = i2c_master_read_slave(I2C_MASTER_NUM, data_rx, 3);
-        printf("repeate i2c_master_read_slave[%d]\n",err );
-
-    }
-
-    vTaskDelay(70 / portTICK_RATE_MS);
     
-    err = i2c_master_read_slave(I2C_MASTER_NUM, data_rx, 3);
-    printf("repeate i2c_master_read_slave[%d]\n",err );
-   printf("read[%02X][%02X][%02X]\n",data_rx[0], data_rx[1],data_rx[2] );
 
     if(!data_rx[0]&&!data_rx[1]){
         return -1;
     }
-/*    data_rx[1] &= 0xfc;
-    dat = (data_rx[0] << 8) | data_rx[1];
-    temp = ((float)dat * 175.72) / 65536.0 - 46.85; // ℃
-*/
-
-
     data_rx[1] &= 0xfc;
     dat = (data_rx[0] << 8) | data_rx[1];
-    temp = (float)((dat * 125.0) / 65536.0 - 6); //%RH
+    temp = ((float)dat * 175.72) / 65536.0 - 46.85; // ℃
+
+
+
+
    return temp;
 }
 
@@ -177,37 +200,23 @@ float i2c_sht20_get_temperature(){
 
 //得到温度
 float i2c_sht20_get_humidity(){
-     uint8_t data_rx[8] = {0};
+    uint8_t data_rx[8] = {0};
     uint8_t data_wr[8] = {0};
     unsigned int dat = 0;
     float temp = 0;
     esp_err_t err;
 
-    data_wr[0] = HOLD_AH_START;
+    data_wr[0] = 0xF5;
     err = i2c_master_write_slave(I2C_MASTER_NUM, data_wr, strlen((char *)data_wr));
     printf("i2c_master_write_slave[%d]\n",err );
-    vTaskDelay(30 / portTICK_RATE_MS);
+    vTaskDelay(70 / portTICK_RATE_MS);
     err = i2c_master_read_slave(I2C_MASTER_NUM, data_rx, 3);
-
-    if(err != ESP_OK){
-        vTaskDelay(70 / portTICK_RATE_MS);
-        
-        err = i2c_master_read_slave(I2C_MASTER_NUM, data_rx, 3);
-        printf("repeate i2c_master_read_slave[%d]\n",err );
-
-    }
-
-
     printf("i2c_master_read_slave[%d]\n",err );
-   printf("read[%02X][%02X][%02X]\n",data_rx[0], data_rx[1],data_rx[2] );
+    
 
     if(!data_rx[0]&&!data_rx[1]){
         return -1;
     }
-/*    data_rx[1] &= 0xfc;
-    dat = (data_rx[0] << 8) | data_rx[1];
-    temp = ((float)dat * 175.72) / 65536.0 - 46.85; // ℃
-*/
 
 
     data_rx[1] &= 0xfc;
@@ -216,16 +225,19 @@ float i2c_sht20_get_humidity(){
    return temp;
 }
 
-#if 0
+#if 1
 void i2c_sht20_task(){
    float temp = 0;
+   temp = i2c_sht20_get_temperature();
+
+   printf("t=%.2f\n", temp);
+
+    // temp = i2c_sht20_get_humidity();
+    // printf("h=%.2f\n", temp);
+
    temp = i2c_sht20_get_humidity();
-
    printf("H=%.2f\n", temp);
-
-//    temp = i2c_sht20_get_humidity();
-//    printf("H=%.2f\n", temp);
-   //vTaskDelay(10000 / portTICK_RATE_MS);
+   vTaskDelay(10000 / portTICK_RATE_MS);
    return ;
 }
 #else
