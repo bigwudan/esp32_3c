@@ -30,8 +30,8 @@
 #define ESP_SLAVE_ADDR 0x40
 
 #define SHT_SENSOR_ADDR                 0x80        /*传感器地址0x80 */
-#define HOLD_AT_START 0xF5    //触发温度测量 0xE3
-#define HOLD_AH_START 0xF5    //触发湿度测量
+#define HOLD_AT_START 0xE3    //触发温度测量 0xE3
+#define HOLD_AH_START 0xE3    //触发湿度测量
 #define REST 0xfe             //软件复位
 
 #define ACK_CHECK_EN 0x1           /*!< I2C master will check ack from slave*/
@@ -62,6 +62,13 @@ esp_err_t i2c_master_init(void)
     };
 
     i2c_param_config(i2c_master_port, &conf);
+
+    int time_int = 0;
+    i2c_get_timeout(i2c_master_port, &time_int);
+
+    printf("xxxxxxxxxxxxxxxxx[%d]xx\n",time_int );
+
+    i2c_set_timeout(i2c_master_port, 100);
 
     return i2c_driver_install(i2c_master_port, conf.mode, I2C_MASTER_RX_BUF_DISABLE, I2C_MASTER_TX_BUF_DISABLE, 0);
 }
@@ -137,6 +144,18 @@ float i2c_sht20_get_temperature(){
     vTaskDelay(30 / portTICK_RATE_MS);
     err = i2c_master_read_slave(I2C_MASTER_NUM, data_rx, 3);
     printf("i2c_master_read_slave[%d]\n",err );
+    if(err != ESP_OK){
+        vTaskDelay(70 / portTICK_RATE_MS);
+        
+        err = i2c_master_read_slave(I2C_MASTER_NUM, data_rx, 3);
+        printf("repeate i2c_master_read_slave[%d]\n",err );
+
+    }
+
+    vTaskDelay(70 / portTICK_RATE_MS);
+    
+    err = i2c_master_read_slave(I2C_MASTER_NUM, data_rx, 3);
+    printf("repeate i2c_master_read_slave[%d]\n",err );
    printf("read[%02X][%02X][%02X]\n",data_rx[0], data_rx[1],data_rx[2] );
 
     if(!data_rx[0]&&!data_rx[1]){
@@ -169,6 +188,16 @@ float i2c_sht20_get_humidity(){
     printf("i2c_master_write_slave[%d]\n",err );
     vTaskDelay(30 / portTICK_RATE_MS);
     err = i2c_master_read_slave(I2C_MASTER_NUM, data_rx, 3);
+
+    if(err != ESP_OK){
+        vTaskDelay(70 / portTICK_RATE_MS);
+        
+        err = i2c_master_read_slave(I2C_MASTER_NUM, data_rx, 3);
+        printf("repeate i2c_master_read_slave[%d]\n",err );
+
+    }
+
+
     printf("i2c_master_read_slave[%d]\n",err );
    printf("read[%02X][%02X][%02X]\n",data_rx[0], data_rx[1],data_rx[2] );
 
@@ -187,7 +216,7 @@ float i2c_sht20_get_humidity(){
    return temp;
 }
 
-
+#if 0
 void i2c_sht20_task(){
    float temp = 0;
    temp = i2c_sht20_get_humidity();
@@ -199,3 +228,169 @@ void i2c_sht20_task(){
    //vTaskDelay(10000 / portTICK_RATE_MS);
    return ;
 }
+#else
+
+
+static void _delay_i2c(){
+    vTaskDelay(8 / portTICK_RATE_MS);
+    vTaskDelay(5 / portTICK_RATE_MS);     
+    return ;
+}
+
+#define I2C_SCL(A) do{gpio_set_level(I2C_MASTER_SCL_IO, A);}while(0)
+
+#define I2C_SDA(A) do{gpio_set_level(I2C_MASTER_SDA_IO, A);}while(0)
+
+//开始
+static void _start_i2c(){
+    I2C_SCL(1);
+    _delay_i2c();
+    I2C_SDA(1);
+    _delay_i2c();
+    I2C_SDA(0);
+    return ;
+}
+
+
+static void _stop_i2c(){
+    I2C_SCL(1);
+    _delay_i2c();
+    I2C_SDA(0);
+    _delay_i2c();
+    I2C_SDA(1);
+    return ;
+}
+
+
+//写入地址
+static void _write_i2c(uint8_t data){
+    uint8_t flag = 0;
+    for(int i=0; i<8; i++){
+        flag = (0x01 & (data >> (7 -i)));
+        //sda
+        I2C_SCL(0);
+        I2C_SDA(flag);
+        _delay_i2c();
+        I2C_SCL(1);  
+        _delay_i2c();      
+        I2C_SCL(0);  
+    }
+    return ;
+}
+
+//写入地址
+static uint8_t _read_i2c(){
+    uint8_t flag = 0;
+    uint8_t res = 0;
+ 
+    for(int i=0; i<8; i++){
+        
+        //sda
+        I2C_SCL(0);
+ 
+        _delay_i2c();
+        I2C_SCL(1);  
+
+
+        flag = gpio_get_level(I2C_MASTER_SDA_IO);
+
+        if(flag){
+
+           res = res | (1 << (7 - i));
+        }
+
+        _delay_i2c();      
+        I2C_SCL(0);  
+    }
+    return res;
+}
+
+
+//等待ack
+static uint8_t _get_ack(){
+    uint8_t res = 0;
+    //交出控制权
+    I2C_SDA(1);
+
+    I2C_SCL(0);
+    _delay_i2c();
+    I2C_SCL(1);
+    res = gpio_get_level(I2C_MASTER_SDA_IO);
+    _delay_i2c();      
+    I2C_SCL(0);    
+    return res;
+}
+
+
+//发送写地址
+static void _send_attr(){
+    uint8_t flag_ack = 0;
+    _start_i2c();
+    //发送地址
+    _write_i2c(0x80);
+    flag_ack = _get_ack();
+
+    if(flag_ack) return ;
+
+    _write_i2c(0xE7);
+    flag_ack = _get_ack();
+    if(flag_ack) return ;
+
+    _start_i2c();
+    _write_i2c(0x81);
+    flag_ack = _get_ack();
+
+    if(flag_ack) return ;
+    flag_ack = _read_i2c();
+
+    _stop_i2c();
+
+
+    printf("flag_ack[%d]\n",flag_ack );
+
+    
+
+}
+
+
+void i2c_sht20_task(){
+    // gpio_pad_select_gpio(I2C_MASTER_SCL_IO);
+	// gpio_set_direction(I2C_MASTER_SCL_IO, GPIO_MODE_INPUT_OUTPUT_OD);
+    // gpio_pad_select_gpio(I2C_MASTER_SDA_IO);
+	// gpio_set_direction(I2C_MASTER_SDA_IO, GPIO_MODE_INPUT_OUTPUT_OD);
+    // _send_attr();
+
+    // return ;
+    gpio_pad_select_gpio(I2C_MASTER_SCL_IO);
+	gpio_set_direction(I2C_MASTER_SCL_IO, GPIO_MODE_INPUT_OUTPUT_OD);
+    gpio_set_pull_mode(I2C_MASTER_SCL_IO,GPIO_PULLUP_ONLY );
+
+    gpio_pad_select_gpio(I2C_MASTER_SDA_IO);
+	gpio_set_direction(I2C_MASTER_SDA_IO, GPIO_MODE_INPUT_OUTPUT_OD);
+    gpio_set_pull_mode(I2C_MASTER_SDA_IO,GPIO_PULLUP_ONLY );
+
+    I2C_SCL(1);  
+    I2C_SDA(1);  
+    printf("<<<<<<<<<<<<<<i2c_sht20_task\n");
+    _send_attr();
+
+    return ;
+
+    while(1){
+        gpio_set_level(I2C_MASTER_SCL_IO, 0);
+        gpio_set_level(I2C_MASTER_SDA_IO, 0);
+        //vTaskDelay(5 / portTICK_RATE_MS);
+        vTaskDelay(8 / portTICK_RATE_MS);
+        vTaskDelay(5 / portTICK_RATE_MS);
+        gpio_set_level(I2C_MASTER_SCL_IO, 1);
+        gpio_set_level(I2C_MASTER_SDA_IO, 1);
+        vTaskDelay(8 / portTICK_RATE_MS);
+        vTaskDelay(5 / portTICK_RATE_MS);
+    }
+
+
+
+   return ;
+}
+
+#endif

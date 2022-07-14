@@ -150,7 +150,13 @@ void app_main(void)
     enum knob_state knob_res; 
  
     //初始化i2c
-    i2c_master_init();
+    //i2c_master_init();
+
+
+    //测试
+    i2c_sht20_task();
+
+    while(1);
 
 
 
