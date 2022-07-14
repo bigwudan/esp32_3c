@@ -21,7 +21,7 @@
 #define I2C_MASTER_SCL_IO           8      /*!< GPIO number used for I2C master clock */
 #define I2C_MASTER_SDA_IO           2      /*!< GPIO number used for I2C master data  */
 #define I2C_MASTER_NUM              0                          /*!< I2C master i2c port number, the number of i2c peripheral interfaces available will depend on the chip */
-#define I2C_MASTER_FREQ_HZ          100000                     /*!< I2C master clock frequency */
+#define I2C_MASTER_FREQ_HZ          50000                     /*!< I2C master clock frequency */
 #define I2C_MASTER_TX_BUF_DISABLE   0                          /*!< I2C master doesn't need buffer */
 #define I2C_MASTER_RX_BUF_DISABLE   0                          /*!< I2C master doesn't need buffer */
 #define I2C_MASTER_TIMEOUT_MS       1000
@@ -30,8 +30,8 @@
 #define ESP_SLAVE_ADDR 0x40
 
 #define SHT_SENSOR_ADDR                 0x80        /*传感器地址0x80 */
-#define HOLD_AT_START 0xe3    //触发温度测量
-#define HOLD_AH_START 0xe5    //触发湿度测量
+#define HOLD_AT_START 0xF5    //触发温度测量 0xE3
+#define HOLD_AH_START 0xF5    //触发湿度测量
 #define REST 0xfe             //软件复位
 
 #define ACK_CHECK_EN 0x1           /*!< I2C master will check ack from slave*/
@@ -131,10 +131,10 @@ float i2c_sht20_get_temperature(){
     float temp = 0;
     esp_err_t err;
 
-    data_wr[0] = HOLD_AT_START;
+    data_wr[0] = HOLD_AH_START;
     err = i2c_master_write_slave(I2C_MASTER_NUM, data_wr, strlen((char *)data_wr));
     printf("i2c_master_write_slave[%d]\n",err );
-    vTaskDelay(20 / portTICK_RATE_MS);
+    vTaskDelay(30 / portTICK_RATE_MS);
     err = i2c_master_read_slave(I2C_MASTER_NUM, data_rx, 3);
     printf("i2c_master_read_slave[%d]\n",err );
    printf("read[%02X][%02X][%02X]\n",data_rx[0], data_rx[1],data_rx[2] );
@@ -142,19 +142,60 @@ float i2c_sht20_get_temperature(){
     if(!data_rx[0]&&!data_rx[1]){
         return -1;
     }
-    data_rx[1] &= 0xfc;
+/*    data_rx[1] &= 0xfc;
     dat = (data_rx[0] << 8) | data_rx[1];
     temp = ((float)dat * 175.72) / 65536.0 - 46.85; // ℃
+*/
 
+
+    data_rx[1] &= 0xfc;
+    dat = (data_rx[0] << 8) | data_rx[1];
+    temp = (float)((dat * 125.0) / 65536.0 - 6); //%RH
+   return temp;
+}
+
+
+
+//得到温度
+float i2c_sht20_get_humidity(){
+     uint8_t data_rx[8] = {0};
+    uint8_t data_wr[8] = {0};
+    unsigned int dat = 0;
+    float temp = 0;
+    esp_err_t err;
+
+    data_wr[0] = HOLD_AH_START;
+    err = i2c_master_write_slave(I2C_MASTER_NUM, data_wr, strlen((char *)data_wr));
+    printf("i2c_master_write_slave[%d]\n",err );
+    vTaskDelay(30 / portTICK_RATE_MS);
+    err = i2c_master_read_slave(I2C_MASTER_NUM, data_rx, 3);
+    printf("i2c_master_read_slave[%d]\n",err );
+   printf("read[%02X][%02X][%02X]\n",data_rx[0], data_rx[1],data_rx[2] );
+
+    if(!data_rx[0]&&!data_rx[1]){
+        return -1;
+    }
+/*    data_rx[1] &= 0xfc;
+    dat = (data_rx[0] << 8) | data_rx[1];
+    temp = ((float)dat * 175.72) / 65536.0 - 46.85; // ℃
+*/
+
+
+    data_rx[1] &= 0xfc;
+    dat = (data_rx[0] << 8) | data_rx[1];
+    temp = (float)((dat * 125.0) / 65536.0 - 6); //%RH
    return temp;
 }
 
 
 void i2c_sht20_task(){
    float temp = 0;
-   temp = i2c_sht20_get_temperature();
-   //ESP_LOGI(TAG, "T=%.2f℃", temp);
-   printf("T=%.2f\n", temp);
+   temp = i2c_sht20_get_humidity();
+
+   printf("H=%.2f\n", temp);
+
+//    temp = i2c_sht20_get_humidity();
+//    printf("H=%.2f\n", temp);
    //vTaskDelay(10000 / portTICK_RATE_MS);
    return ;
 }

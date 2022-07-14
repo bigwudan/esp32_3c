@@ -152,6 +152,11 @@ void app_main(void)
     //初始化i2c
     i2c_master_init();
 
+
+
+
+  
+
     //knob_init();
     knob_task_init();
 
