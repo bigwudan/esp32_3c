@@ -45,6 +45,36 @@
 //i2c
 #include "driver/i2c.h"
 
+
+#define CRC_MODEL 0x131
+
+uint8_t CRC_Check(uint8_t *ptr, uint8_t len, uint8_t checksum)
+{
+    uint8_t i; 
+    uint8_t crc = 0x00; 				//计算的初始crc值 
+ 
+    while(len--)
+    {
+        crc ^= *ptr++;  		//每次先与需要计算的数据异或,计算完指向下一数据  
+		
+        for (i = 8; i > 0; --i) //下面这段计算过程与计算一个字节crc一样 
+        { 
+            if (crc & 0x80)
+			{
+				crc = (crc << 1) ^ CRC_MODEL;
+			}    
+            else
+                crc = (crc << 1);
+        }
+    }
+ 
+    if(checksum == crc)
+	{
+		return 0;
+	}
+	else return 1;
+}
+
 /**
  * @brief i2c master initialization
  */
@@ -177,10 +207,10 @@ float i2c_sht20_get_temperature(){
 
     data_wr[0] = 0xF3;
     err = i2c_master_write_slave(I2C_MASTER_NUM, data_wr, strlen((char *)data_wr));
-    printf("i2c_master_write_slave[%d]\n",err );
+    
     vTaskDelay(70 / portTICK_RATE_MS);
     err = i2c_master_read_slave(I2C_MASTER_NUM, data_rx, 3);
-    printf("i2c_master_read_slave[%d]\n",err );
+ 
     
 
     if(!data_rx[0]&&!data_rx[1]){
@@ -190,7 +220,9 @@ float i2c_sht20_get_temperature(){
     dat = (data_rx[0] << 8) | data_rx[1];
     temp = ((float)dat * 175.72) / 65536.0 - 46.85; // ℃
 
+    uint8_t res = CRC_Check(data_rx, 3, data_rx[2]);
 
+    printf("crc[%d]\n", res);
 
 
    return temp;
@@ -208,10 +240,10 @@ float i2c_sht20_get_humidity(){
 
     data_wr[0] = 0xF5;
     err = i2c_master_write_slave(I2C_MASTER_NUM, data_wr, strlen((char *)data_wr));
-    printf("i2c_master_write_slave[%d]\n",err );
+   
     vTaskDelay(70 / portTICK_RATE_MS);
     err = i2c_master_read_slave(I2C_MASTER_NUM, data_rx, 3);
-    printf("i2c_master_read_slave[%d]\n",err );
+   
     
 
     if(!data_rx[0]&&!data_rx[1]){
@@ -222,6 +254,11 @@ float i2c_sht20_get_humidity(){
     data_rx[1] &= 0xfc;
     dat = (data_rx[0] << 8) | data_rx[1];
     temp = (float)((dat * 125.0) / 65536.0 - 6); //%RH
+
+
+        uint8_t res = CRC_Check(data_rx, 3, data_rx[2]);
+
+    printf("crc[%d]\n", res);
    return temp;
 }
 
@@ -237,7 +274,7 @@ void i2c_sht20_task(){
 
    temp = i2c_sht20_get_humidity();
    printf("H=%.2f\n", temp);
-   vTaskDelay(10000 / portTICK_RATE_MS);
+   vTaskDelay(1000 / portTICK_RATE_MS);
    return ;
 }
 #else
