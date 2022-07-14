@@ -321,9 +321,121 @@ static uint8_t _get_ack(){
     return res;
 }
 
+//设置ack
+static void _set_no_ack(uint8_t data){
+
+        I2C_SCL(0);
+        I2C_SDA(data);
+        _delay_i2c();
+        I2C_SCL(1);  
+        _delay_i2c();      
+        I2C_SCL(0); 
+}
 
 //发送写地址
 static void _send_attr(){
+    uint8_t flag_ack = 0;
+    uint8_t data_rx[8] = {0};
+    _start_i2c();
+    //发送地址
+    _write_i2c(0x80);
+    flag_ack = _get_ack();
+
+    if(flag_ack) return ;
+
+    _write_i2c(0xE3);
+    flag_ack = _get_ack();
+    if(flag_ack) return ;
+
+    _start_i2c();
+    _write_i2c(0x81);
+    flag_ack = _get_ack();
+
+    if(flag_ack) return ;
+
+    vTaskDelay(70 / portTICK_RATE_MS);
+
+    data_rx[0] = _read_i2c();
+    printf("data_1_[%d]\n",flag_ack );
+    _set_no_ack(0);
+
+
+     data_rx[1] = _read_i2c();
+    printf("data_2_[%d]\n",flag_ack );    
+    _set_no_ack(0);
+
+    flag_ack = _read_i2c();
+    printf("data_3_[%d]\n",flag_ack );
+    _set_no_ack(1);    
+
+    _stop_i2c();
+
+    float temp;
+        unsigned int dat = 0;
+    data_rx[1] &= 0xfc;
+    dat = (data_rx[0] << 8) | data_rx[1];
+    temp = ((float)dat * 175.72) / 65536.0 - 46.85; // ℃
+
+    //printf("flag_ack[%d]\n",flag_ack );
+printf("t=%.2f\n", temp);
+    
+
+}
+
+
+//发送写地址
+static void _send_attr_h(){
+    uint8_t flag_ack = 0;
+    uint8_t data_rx[8] = {0};
+    _start_i2c();
+    //发送地址
+    _write_i2c(0x80);
+    flag_ack = _get_ack();
+
+    if(flag_ack) return ;
+
+    _write_i2c(0xE5);
+    flag_ack = _get_ack();
+    if(flag_ack) return ;
+
+    _start_i2c();
+    _write_i2c(0x81);
+    flag_ack = _get_ack();
+
+    if(flag_ack) return ;
+
+    vTaskDelay(70 / portTICK_RATE_MS);
+
+    data_rx[0] = _read_i2c();
+    printf("data_1_[%d]\n",flag_ack );
+    _set_no_ack(0);
+
+
+     data_rx[1] = _read_i2c();
+    printf("data_2_[%d]\n",flag_ack );    
+    _set_no_ack(0);
+
+    flag_ack = _read_i2c();
+    printf("data_3_[%d]\n",flag_ack );
+    _set_no_ack(1);    
+
+    _stop_i2c();
+
+    float temp;
+        unsigned int dat = 0;
+    data_rx[1] &= 0xfc;
+    dat = (data_rx[0] << 8) | data_rx[1];
+    temp = (float)((dat * 125.0) / 65536.0 - 6); //%RH
+
+    printf("H=%.2f\n", temp);
+    
+
+}
+
+
+
+//发送写地址
+static void _send_attr_bk(){
     uint8_t flag_ack = 0;
     _start_i2c();
     //发送地址
@@ -372,7 +484,16 @@ void i2c_sht20_task(){
     I2C_SCL(1);  
     I2C_SDA(1);  
     printf("<<<<<<<<<<<<<<i2c_sht20_task\n");
-    _send_attr();
+
+    while(1){
+        _send_attr_h();
+        vTaskDelay(1000 / portTICK_RATE_MS);
+        _send_attr();
+
+    }
+
+
+
 
     return ;
 
