@@ -211,7 +211,13 @@ float i2c_sht20_get_temperature(){
     vTaskDelay(70 / portTICK_RATE_MS);
     err = i2c_master_read_slave(I2C_MASTER_NUM, data_rx, 3);
  
-    
+         printf("=====[%02X][%02X][%02X]\n", data_rx[0], data_rx[1], data_rx[2]);
+
+
+
+    uint8_t res = CRC_Check(data_rx, 2, data_rx[2]);
+
+    printf("crc[%d]\n", res);   
 
     if(!data_rx[0]&&!data_rx[1]){
         return -1;
@@ -220,14 +226,8 @@ float i2c_sht20_get_temperature(){
     dat = (data_rx[0] << 8) | data_rx[1];
     temp = ((float)dat * 175.72) / 65536.0 - 46.85; // ℃
 
-    for(int i=0; i < 3; i++){
-        printf("=====[%02X][%02X][%02X]\n", data_rx[0], data_rx[1], data_rx[2]);
 
-    }
 
-    uint8_t res = CRC_Check(data_rx, 2, data_rx[2]);
-
-    printf("crc[%d]\n", res);
 
 
    return temp;
@@ -249,7 +249,13 @@ float i2c_sht20_get_humidity(){
     vTaskDelay(70 / portTICK_RATE_MS);
     err = i2c_master_read_slave(I2C_MASTER_NUM, data_rx, 3);
    
-    
+    printf("=====[%02X][%02X][%02X]\n", data_rx[0], data_rx[1], data_rx[2]);
+
+
+
+    uint8_t res = CRC_Check(data_rx, 2, data_rx[2]);
+
+    printf("crc[%d]\n", res);   
 
     if(!data_rx[0]&&!data_rx[1]){
         return -1;
@@ -260,30 +266,24 @@ float i2c_sht20_get_humidity(){
     dat = (data_rx[0] << 8) | data_rx[1];
     temp = (float)((dat * 125.0) / 65536.0 - 6); //%RH
 
-    for(int i=0; i < 3; i++){
-        printf("=====[%02X][%02X][%02X]\n", data_rx[0], data_rx[1], data_rx[2]);
+  
 
-    }
-
-    uint8_t res = CRC_Check(data_rx, 2, data_rx[2]);
-
-    printf("crc[%d]\n", res);
    return temp;
 }
 
 #if 1
 void i2c_sht20_task(){
    float temp = 0;
-   temp = i2c_sht20_get_temperature();
+//    temp = i2c_sht20_get_temperature();
 
-   printf("t=%.2f\n", temp);
+//    printf("t=%.2f\n", temp);
 
     // temp = i2c_sht20_get_humidity();
     // printf("h=%.2f\n", temp);
 
    temp = i2c_sht20_get_humidity();
    printf("H=%.2f\n", temp);
-   vTaskDelay(1000 / portTICK_RATE_MS);
+   vTaskDelay(3000 / portTICK_RATE_MS);
    return ;
 }
 #else

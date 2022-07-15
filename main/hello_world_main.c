@@ -140,6 +140,8 @@ static void _run_bg(){
 
 
 
+
+
 void app_main(void)
 {
     printf("******1111*****app_main now.\n");
@@ -151,12 +153,6 @@ void app_main(void)
  
     //初始化i2c
     i2c_master_init();
-
-
-
-
-
-
   
 
     //knob_init();
