@@ -287,7 +287,7 @@ void i2c_sht20_task(){
 
    show_humidity = i2c_sht20_get_humidity();
    printf("H=%.2f\n", show_humidity);
-   vTaskDelay(3000 / portTICK_RATE_MS);
+   //vTaskDelay(3000 / portTICK_RATE_MS);
    return ;
 }
 #else
