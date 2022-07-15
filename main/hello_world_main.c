@@ -68,7 +68,8 @@
 
 
 
-
+   float show_temper = 0;
+   float show_humidity = 0;
 
 
 
@@ -103,15 +104,30 @@ lv_obj_t *label_1;
 
 lv_obj_t *label_2;
 
+lv_obj_t *label_temper;
+
+
+lv_obj_t *label_humidity;
+
+
+
 void _my_task(){
     static int idx = 0;
+    char t_buf[64] = {0};
+
     lv_label_set_text(label_1, test_show_buf);  // 显示数字
 
     lv_label_set_text(label_2, test_show_http_buf);  // 显示数字
 
+    sprintf(t_buf, "%.2f", show_temper);
+    lv_label_set_text(label_temper, t_buf);  // 显示数字
+
+    sprintf(t_buf, "%.2f", show_humidity);
+    lv_label_set_text(label_humidity, t_buf);  // 显示数字
+
     if(idx%2 == 0){
        // lv_obj_set_style_local_bg_color(t_obj, 0, 0, 11);
- lv_obj_set_style_bg_color(t_obj,lv_palette_main(LV_PALETTE_YELLOW), LV_PART_MAIN); 
+        lv_obj_set_style_bg_color(t_obj,lv_palette_main(LV_PALETTE_YELLOW), LV_PART_MAIN); 
 
 
     }else{
@@ -125,18 +141,36 @@ void _my_task(){
 }
 
 
-static void _run_bg(){
+
+static void _ui_int(){
+
+    _lv_timer_create();
+    t_obj = lv_obj_create(lv_scr_act());
+    lv_obj_set_size(t_obj, 240,240);
+    lv_obj_set_pos(t_obj, 0, 0);
 
 
-    gpio_pad_select_gpio(3);                 // 选择GPIO口
-    gpio_set_direction(3, GPIO_MODE_OUTPUT); // GPIO作为输出
-    gpio_set_level(3, 0);                    // 默认低电平
+    label_1 =  lv_label_create(lv_scr_act());
+    lv_label_set_text(label_1, test_show_buf);  // 显示数字
+    lv_obj_center(label_1);
 
+    label_2 =  lv_label_create(lv_scr_act());
+    lv_label_set_text(label_2, test_show_http_buf);  // 显示数字
+    lv_obj_set_pos(label_2, 20, 40);
+
+
+
+    label_temper =  lv_label_create(lv_scr_act());
+    
+    lv_obj_set_pos(label_temper, 20, 60);
+    lv_label_set_text(label_temper, "temper");  // 显示数字
+
+    label_humidity =  lv_label_create(lv_scr_act());
+    lv_label_set_text(label_temper, "humidity");  // 显示数字
+    lv_obj_set_pos(label_humidity, 20, 80);
 
 
 }
-
-
 
 
 
@@ -163,20 +197,8 @@ void app_main(void)
     lcd_dev_init();
     lv_init();
     lv_port_disp_init();
-    _lv_timer_create();
-    t_obj = lv_obj_create(lv_scr_act());
-    lv_obj_set_size(t_obj, 240,240);
-    lv_obj_set_pos(t_obj, 0, 0);
 
-
-    label_1 =  lv_label_create(lv_scr_act());
-    lv_label_set_text(label_1, test_show_buf);  // 显示数字
-    lv_obj_center(label_1);
-
-    label_2 =  lv_label_create(lv_scr_act());
-    lv_label_set_text(label_2, test_show_http_buf);  // 显示数字
-    lv_obj_set_pos(label_2, 20, 40);
-
+    _ui_int();
     //lv_task_create(_my_task, 500, LV_TASK_PRIO_MID, NULL);
     while(1){
 	    vTaskDelay(20 / portTICK_PERIOD_MS);

@@ -273,16 +273,20 @@ float i2c_sht20_get_humidity(){
 
 #if 1
 void i2c_sht20_task(){
-   float temp = 0;
-//    temp = i2c_sht20_get_temperature();
 
-//    printf("t=%.2f\n", temp);
+   extern float show_temper;
+   extern float show_humidity;
+
+   
+   show_temper = i2c_sht20_get_temperature();
+
+   printf("t=%.2f\n", show_temper);
 
     // temp = i2c_sht20_get_humidity();
     // printf("h=%.2f\n", temp);
 
-   temp = i2c_sht20_get_humidity();
-   printf("H=%.2f\n", temp);
+   show_humidity = i2c_sht20_get_humidity();
+   printf("H=%.2f\n", show_humidity);
    vTaskDelay(3000 / portTICK_RATE_MS);
    return ;
 }
