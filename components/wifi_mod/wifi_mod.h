@@ -7,10 +7,7 @@
 */
 #ifndef _WIFI_MOD_H
 #define _WIFI_MOD_H
-/*
-初始化wifi
-*/
-esp_err_t wifi_mod_init();
+
 
 /*
 启动wifi

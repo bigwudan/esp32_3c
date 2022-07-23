@@ -187,7 +187,7 @@ void app_main(void)
 
     esp_err_t res;
     enum knob_state knob_res; 
-#if 0
+#if 1
     res = wifi_mod_start();
 
     if(res != ESP_OK){

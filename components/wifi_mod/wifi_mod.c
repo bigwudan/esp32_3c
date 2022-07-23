@@ -19,152 +19,209 @@
 #include "mqtt_client.h"
 #include "wifi_mod.h"
 
+/* Set the SSID and Password via project configuration, or can set directly here */
+#define DEFAULT_SSID "TP-LINK_61D2"
+#define DEFAULT_PWD "datuo123456"
 
-#define ESP_WIFI_SSID "TP-LINK_61D2"         //wifidssid，就是家里路由器的名字
-#define ESP_WIFI_PASS "datuo123456"     //wifi密码，家里路由器的密码
-#define ESP_MAXIMUM_RETRY 3 //尝试连接wifi的最大次数，若超过这个数则停止连接
+#if CONFIG_EXAMPLE_WIFI_ALL_CHANNEL_SCAN
+#define DEFAULT_SCAN_METHOD WIFI_ALL_CHANNEL_SCAN
+#elif CONFIG_EXAMPLE_WIFI_FAST_SCAN
+#define DEFAULT_SCAN_METHOD WIFI_FAST_SCAN
+#else
+#define DEFAULT_SCAN_METHOD WIFI_FAST_SCAN
+#endif /*CONFIG_EXAMPLE_SCAN_METHOD*/
 
-/* FreeRTOS event group to signal when we are connected*/
-static EventGroupHandle_t _wifi_event_group; //声明一个事件组，事件组主要是考虑到很多网络操作需要在我们连接到路由器并拿到IP之后才能进行
+#if CONFIG_EXAMPLE_WIFI_CONNECT_AP_BY_SIGNAL
+#define DEFAULT_SORT_METHOD WIFI_CONNECT_AP_BY_SIGNAL
+#elif CONFIG_EXAMPLE_WIFI_CONNECT_AP_BY_SECURITY
+#define DEFAULT_SORT_METHOD WIFI_CONNECT_AP_BY_SECURITY
+#else
+#define DEFAULT_SORT_METHOD WIFI_CONNECT_AP_BY_SIGNAL
+#endif /*CONFIG_EXAMPLE_SORT_METHOD*/
+
+#if CONFIG_EXAMPLE_FAST_SCAN_THRESHOLD
+#define DEFAULT_RSSI CONFIG_EXAMPLE_FAST_SCAN_MINIMUM_SIGNAL
+#if CONFIG_EXAMPLE_FAST_SCAN_WEAKEST_AUTHMODE_OPEN
+#define DEFAULT_AUTHMODE WIFI_AUTH_OPEN
+#elif CONFIG_EXAMPLE_FAST_SCAN_WEAKEST_AUTHMODE_WEP
+#define DEFAULT_AUTHMODE WIFI_AUTH_WEP
+#elif CONFIG_EXAMPLE_FAST_SCAN_WEAKEST_AUTHMODE_WPA
+#define DEFAULT_AUTHMODE WIFI_AUTH_WPA_PSK
+#elif CONFIG_EXAMPLE_FAST_SCAN_WEAKEST_AUTHMODE_WPA2
+#define DEFAULT_AUTHMODE WIFI_AUTH_WPA2_PSK
+#else
+#define DEFAULT_AUTHMODE WIFI_AUTH_OPEN
+#endif
+#else
+#define DEFAULT_RSSI -127
+#define DEFAULT_AUTHMODE WIFI_AUTH_OPEN
+#endif /*CONFIG_EXAMPLE_FAST_SCAN_THRESHOLD*/
 
 
-#define WIFI_CONNECTED_BIT BIT0 //定义的事件组的0位，标志连接成功
-#define WIFI_FAIL_BIT BIT1      //定义的事件组的1位，标志连接失败
+static const char *TAG = "wifi_mod";
 
 
-static const char *TAG = "WIFI_MOD";
+#define MQTT_URL "120.46.207.95"
+#define MQTT_CLIENT_ID "test_no_0"
+#define MQTT_USERNAME "534093"
+#define MQTT_PASSWORD "version=2018-10-31&res=products%2F534093%2Fdevices%2Ftest_no_0&et=1670377192&method=md5&sign=z2rrvoyuHyYTyxT3zxrrgg%3D%3D"
+#define MQTT_PORT 1883
 
-static int s_retry_num = 0;
-
-
-static void event_handler(void *arg, esp_event_base_t event_base,
-                          int32_t event_id, void *event_data)
+static void log_error_if_nonzero(const char *message, int error_code)
 {
-    //WIFI_EVENT_STA_START为初始事件状态，在此事情状态中，调用esp_wifi_connect()操作会连接到路由器（AP）上，
-    //连接成功后，事件状态位会变为WIFI_EVENT_STA_CONNECTED，此时会调用DHCP进行请求IP，
-    if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_START)
-    {
-        esp_wifi_connect();
+    if (error_code != 0) {
+        ESP_LOGE(TAG, "Last error %s: 0x%x", message, error_code);
     }
-    //如果连接失败，事件状态位会变为WIFI_EVENT_STA_DISCONNECTED，继续连接直到连接次数超过了最大允许值
-    else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_DISCONNECTED)
-    {
-        if (s_retry_num < ESP_MAXIMUM_RETRY)
-        {
-            esp_wifi_connect();
-            s_retry_num++;
-            ESP_LOGI(TAG, "retry to connect to the AP");
-        }
-        else
-        {
-            //超过了最大连接次数还连不上，则置位事件组的WIFI_FAIL_BIT标志
-            xEventGroupSetBits(_wifi_event_group, WIFI_FAIL_BIT);
-        }
-        ESP_LOGI(TAG, "connect to the AP fail");
-    }
-    //在拿到IP之后事件状态会变更为IP_EVENT_STA_GOT_IP。在这里我们使用了xEventGroupSetBits，设置事件组标志，
-    else if (event_base == IP_EVENT && event_id == IP_EVENT_STA_GOT_IP)
-    {
-        //将事件传递过来的数据格式化为ip格式
-        ip_event_got_ip_t *event = (ip_event_got_ip_t *)event_data;
-        //将IP格式华为字符串打印出来
-        ESP_LOGI(TAG, "got ip:" IPSTR, IP2STR(&event->ip_info.ip));
-        s_retry_num = 0;
-        //成功获取了IP，置位事件组中的WIFI_CONNECTED_BIT标志
-        xEventGroupSetBits(_wifi_event_group, WIFI_CONNECTED_BIT);
-    }
-
 }
 
 
 /*
-初始化wifi
-*/
-esp_err_t wifi_mod_init(){
+ * @brief Event handler registered to receive MQTT events
+ *
+ *  This function is called by the MQTT client event loop.
+ *
+ * @param handler_args user data registered to the event.
+ * @param base Event base for the handler(always MQTT Base in this example).
+ * @param event_id The id for the received event.
+ * @param event_data The data for the event, esp_mqtt_event_handle_t.
+ */
+static void _mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_t event_id, void *event_data)
+{
+    printf("mqtt_event_handler\n");
+    ESP_LOGD(TAG, "Event dispatched from event loop base=%s, event_id=%d", base, event_id);
+    esp_mqtt_event_handle_t event = event_data;
+    esp_mqtt_client_handle_t client = event->client;
+    int msg_id = 0;
+    switch ((esp_mqtt_event_id_t)event_id) {
+    case MQTT_EVENT_CONNECTED:
+        ESP_LOGI(TAG, "MQTT_EVENT_CONNECTED");
 
-    esp_err_t res;
-    _wifi_event_group = xEventGroupCreate();   //FreeRTOS创建事件组，返回其句柄
 
-    ESP_ERROR_CHECK(esp_netif_init());  //初始化底层TCP/IP堆栈
 
-    ESP_ERROR_CHECK(esp_event_loop_create_default());   //创建默认事件循环，能够默认处理wifi、以太网、ip等事件
-    esp_netif_create_default_wifi_sta();    //创建默认的 WIFI STA. 如果出现任何初始化错误，此API将中止。
+        //注册命令
+        //msg_id = esp_mqtt_client_subscribe(client, "$sys/534093/test_no_0/cmd/request/+", 0);
 
-    wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();    //指定需要初始化wifi底层的默认参数信息
-    ESP_ERROR_CHECK(esp_wifi_init(&cfg));   //用上述信息来初始化WIFI硬件。
+        msg_id = esp_mqtt_client_subscribe(client, "topic1", 0);
+        
+        ESP_LOGI(TAG, "sent subscribe successful, msg_id=%d", msg_id);
+#if 0     
+        msg_id = esp_mqtt_client_publish(client, "$sys/534093/test_no_0/dp/post/json", "{\"id\":123,\"dp\":{\"temp\":[{\"v\":99}]}}", 0, 0, 0);
+        ESP_LOGI(TAG, "publish msg_id[%d]\n", msg_id);
 
-	//向上面创建的的事件循环中注册事件和事件处理函数
-    //注册一个事件句柄到WIFI_EVENT事件，如果发生任何事件（ESP_EVENT_ANY_ID），则执行回调函数event_handler，无额外参数传递
-    ESP_ERROR_CHECK(esp_event_handler_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &event_handler, NULL));
-    //注册一个事件句柄到IP_EVENT事件，如果发生获取了IP事件（IP_EVENT_STA_GOT_IP），则执行回调函数event_handler，无额外参数传递
-    ESP_ERROR_CHECK(esp_event_handler_register(IP_EVENT, IP_EVENT_STA_GOT_IP, &event_handler, NULL));
+#endif        
+        break;
+    case MQTT_EVENT_DISCONNECTED:
+        ESP_LOGI(TAG, "MQTT_EVENT_DISCONNECTED");
+        break;
 
-    /*
-    wifi_config是WIFI连接时的配置信息，作为STA时只需要考虑sta的参数信息，下述代码只是制定了最基本的ssid和password信息，
-    除此之外，还可以指定bssid和channel等相关信息。
-    */
+    case MQTT_EVENT_SUBSCRIBED:
+        ESP_LOGI(TAG, "MQTT_EVENT_SUBSCRIBED, msg_id=%d", event->msg_id);
+        //msg_id = esp_mqtt_client_publish(client, "/topic/qos0", "data", 0, 0, 0);
+        ESP_LOGI(TAG, "sent publish successful, msg_id=%d", msg_id);
+        break;
+    case MQTT_EVENT_UNSUBSCRIBED:
+        ESP_LOGI(TAG, "MQTT_EVENT_UNSUBSCRIBED, msg_id=%d", event->msg_id);
+        break;
+    case MQTT_EVENT_PUBLISHED:
+        ESP_LOGI(TAG, "MQTT_EVENT_PUBLISHED, msg_id=%d", event->msg_id);
+        break;
+    case MQTT_EVENT_DATA:
+        ESP_LOGI(TAG, "MQTT_EVENT_DATA");
+        printf("TOPIC=%.*s\r\n", event->topic_len, event->topic);
+        printf("DATA=%.*s\r\n", event->data_len, event->data);
+        break;
+    case MQTT_EVENT_ERROR:
+        ESP_LOGI(TAG, "MQTT_EVENT_ERROR");
+        if (event->error_handle->error_type == MQTT_ERROR_TYPE_TCP_TRANSPORT) {
+            log_error_if_nonzero("reported from esp-tls", event->error_handle->esp_tls_last_esp_err);
+            log_error_if_nonzero("reported from tls stack", event->error_handle->esp_tls_stack_err);
+            log_error_if_nonzero("captured as transport's socket errno",  event->error_handle->esp_transport_sock_errno);
+            ESP_LOGI(TAG, "Last errno string (%s)", strerror(event->error_handle->esp_transport_sock_errno));
+
+        }
+        break;
+    default:
+        ESP_LOGI(TAG, "Other event id:%d", event->event_id);
+        break;
+    }
+}
+
+static void _mqtt_app_start(void)
+{
+    esp_mqtt_client_config_t mqtt_cfg = {
+        .host = MQTT_URL,
+        .client_id = MQTT_CLIENT_ID,
+        .username = MQTT_USERNAME,
+        .password=MQTT_PASSWORD,
+        .port=MQTT_PORT
+    };
+
+
+    esp_mqtt_client_handle_t client = esp_mqtt_client_init(&mqtt_cfg);
+    // /* The last argument may be used to pass data to the event handler, in this example mqtt_event_handler */
+    esp_mqtt_client_register_event(client, ESP_EVENT_ANY_ID, _mqtt_event_handler, NULL);
+    esp_mqtt_client_start(client);
+}
+
+static void mqtt_connect_handler(void* arg, esp_event_base_t event_base,
+                            int32_t event_id, void* event_data)
+{
+   _mqtt_app_start();
+}
+
+
+static void _mqtt_app(){
+    ESP_LOGI(TAG, "_mqtt_app-------------connection\n");
+    ESP_ERROR_CHECK(esp_event_handler_register(IP_EVENT, IP_EVENT_STA_GOT_IP, &mqtt_connect_handler, NULL));
+
+    return ;
+}
+
+
+static void event_handler(void* arg, esp_event_base_t event_base,
+                                int32_t event_id, void* event_data)
+{
+    if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_START) {
+        esp_wifi_connect();
+    } else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_DISCONNECTED) {
+        esp_wifi_connect();
+    } else if (event_base == IP_EVENT && event_id == IP_EVENT_STA_GOT_IP) {
+        ip_event_got_ip_t* event = (ip_event_got_ip_t*) event_data;
+        ESP_LOGI(TAG, "got ip:" IPSTR, IP2STR(&event->ip_info.ip));
+    }
+}
+
+static esp_err_t _wifi_mod_init(){
+
+    ESP_ERROR_CHECK(esp_netif_init());
+    ESP_ERROR_CHECK(esp_event_loop_create_default());
+    wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
+    ESP_ERROR_CHECK(esp_wifi_init(&cfg));
+
+    ESP_ERROR_CHECK(esp_event_handler_instance_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &event_handler, NULL, NULL));
+    ESP_ERROR_CHECK(esp_event_handler_instance_register(IP_EVENT, IP_EVENT_STA_GOT_IP, &event_handler, NULL, NULL));
+
+    // Initialize default station as network interface instance (esp-netif)
+    esp_netif_t *sta_netif = esp_netif_create_default_wifi_sta();
+    assert(sta_netif);
+  
+    // Initialize and start WiFi
     wifi_config_t wifi_config = {
         .sta = {
-            .ssid = ESP_WIFI_SSID,
-            .password = ESP_WIFI_PASS,
-            /* Setting a password implies station will connect to all security modes including WEP/WPA.
-             * However these modes are deprecated and not advisable to be used. Incase your Access point
-             * doesn't support WPA2, these mode can be enabled by commenting below line */
-            .threshold.authmode = WIFI_AUTH_WPA2_PSK,
-
-            .pmf_cfg = {
-                .capable = true,
-                .required = false},
+            .ssid = DEFAULT_SSID,
+            .password = DEFAULT_PWD,
+            .scan_method = DEFAULT_SCAN_METHOD,
+            .sort_method = DEFAULT_SORT_METHOD,
+            .threshold.rssi = DEFAULT_RSSI,
+            .threshold.authmode = DEFAULT_AUTHMODE,
         },
     };
-    ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));  //设置wifi模式为sta
-    ESP_ERROR_CHECK(esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config));    //设置wifi的配置参数
-    ESP_ERROR_CHECK(esp_wifi_start());  //使用当前配置启动wifi工作
+    ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
+    ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &wifi_config));
+    ESP_ERROR_CHECK(esp_wifi_start());
 
-    ESP_LOGI(TAG, "wifi_init_sta finished.");
-
-    /* Waiting until either the connection is established (WIFI_CONNECTED_BIT) or connection failed for the maximum
-     * number of re-tries (WIFI_FAIL_BIT). The bits are set by event_handler() (see above) */
-    //FreeRTOS事件组等待wifi连接完成（WIFI_CONNECTED_BIT置位）或者超过最大尝试次数后连接失败（WIFI_FAIL_BIT置位）
-    //两种状态的置位都是在上边的event_handler()回调函数中执行的
-    EventBits_t bits = xEventGroupWaitBits(_wifi_event_group,
-                                           WIFI_CONNECTED_BIT | WIFI_FAIL_BIT,
-                                           pdFALSE,
-                                           pdFALSE,
-                                           portMAX_DELAY);
-
-    /* xEventGroupWaitBits() returns the bits before the call returned, hence we can test which event actually
-     * happened. */
-    //测试一下回调函数把哪一个状态置位了
-    if (bits & WIFI_CONNECTED_BIT)
-    {
-        ESP_LOGI(TAG, "connected to ap SSID:%s password:%s",
-                 ESP_WIFI_SSID, ESP_WIFI_PASS);
-        res = ESP_OK;
-    }
-    else if (bits & WIFI_FAIL_BIT)
-    {
-        ESP_LOGI(TAG, "Failed to connect to SSID:%s, password:%s",
-                 ESP_WIFI_SSID, ESP_WIFI_PASS);
-        res = ESP_FAIL;         
-    }
-    else
-    {
-        ESP_LOGE(TAG, "UNEXPECTED EVENT");
-        res = ESP_ERR_TIMEOUT;
-    }
-
-#if 0
-    //注销一个事件句柄到WIFI_EVENT事件，如果发生任何事件（IP_EVENT_STA_GOT_IP），不再执行回调函数event_handler，无参数传递
-    ESP_ERROR_CHECK(esp_event_handler_unregister(IP_EVENT, IP_EVENT_STA_GOT_IP, &event_handler));
-    //注销一个事件句柄到WIFI_EVENT事件，如果发生任何事件（ESP_EVENT_ANY_ID），不再执行回调函数event_handler，无参数传递
-    ESP_ERROR_CHECK(esp_event_handler_unregister(WIFI_EVENT, ESP_EVENT_ANY_ID, &event_handler));
-    //FreeRTOS销毁wifi事件组
-    vEventGroupDelete(_wifi_event_group);
-#endif
-
-
-    return res;
+    _mqtt_app();
+    return ESP_OK;
 }
 
 
@@ -181,12 +238,6 @@ esp_err_t wifi_mod_start(){
         ret = nvs_flash_init();
     }
     ESP_ERROR_CHECK(ret);
-
-    ESP_LOGI(TAG, "ESP_WIFI_MODE_STA");
-
-    ESP_LOGI(TAG, "wifi_mod_start\n");
-
-    ret = wifi_mod_init();
-
-    return ret;
+    _wifi_mod_init();
+    return ESP_OK;
 }
