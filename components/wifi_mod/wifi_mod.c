@@ -23,6 +23,13 @@
 #define DEFAULT_SSID "TP-LINK_61D2"
 #define DEFAULT_PWD "datuo123456"
 
+
+
+
+static EventGroupHandle_t _wifi_event_group; //声明一个事件组，事件组主要是考虑到很多网络操作需要在我们连接到路由器并拿到IP之后才能进行
+#define WIFI_CONNECTED_BIT BIT0 //定义的事件组的0位，标志连接成功
+#define WIFI_FAIL_BIT BIT1      //定义的事件组的1位，标志连接失败
+
 #if CONFIG_EXAMPLE_WIFI_ALL_CHANNEL_SCAN
 #define DEFAULT_SCAN_METHOD WIFI_ALL_CHANNEL_SCAN
 #elif CONFIG_EXAMPLE_WIFI_FAST_SCAN
@@ -170,29 +177,63 @@ static void mqtt_connect_handler(void* arg, esp_event_base_t event_base,
 }
 
 
-static void _mqtt_app(){
-    ESP_LOGI(TAG, "_mqtt_app-------------connection\n");
-    ESP_ERROR_CHECK(esp_event_handler_register(IP_EVENT, IP_EVENT_STA_GOT_IP, &mqtt_connect_handler, NULL));
-
+void _mqtt_app(){
+    // ESP_LOGI(TAG, "_mqtt_app-------------connection\n");
+    // ESP_ERROR_CHECK(esp_event_handler_register(IP_EVENT, IP_EVENT_STA_GOT_IP, &mqtt_connect_handler, NULL));
+    _mqtt_app_start();
     return ;
 }
 
 
-static void event_handler(void* arg, esp_event_base_t event_base,
-                                int32_t event_id, void* event_data)
+
+
+
+static void event_handler(void *arg, esp_event_base_t event_base,
+                          int32_t event_id, void *event_data)
 {
-    if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_START) {
+#define ESP_MAXIMUM_RETRY 3 //尝试连接wifi的最大次数，若超过这个数则停止连接    
+    static int s_retry_num = 0;
+    //WIFI_EVENT_STA_START为初始事件状态，在此事情状态中，调用esp_wifi_connect()操作会连接到路由器（AP）上，
+    //连接成功后，事件状态位会变为WIFI_EVENT_STA_CONNECTED，此时会调用DHCP进行请求IP，
+    if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_START)
+    {
         esp_wifi_connect();
-    } else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_DISCONNECTED) {
-        esp_wifi_connect();
-    } else if (event_base == IP_EVENT && event_id == IP_EVENT_STA_GOT_IP) {
-        ip_event_got_ip_t* event = (ip_event_got_ip_t*) event_data;
-        ESP_LOGI(TAG, "got ip:" IPSTR, IP2STR(&event->ip_info.ip));
     }
+    //如果连接失败，事件状态位会变为WIFI_EVENT_STA_DISCONNECTED，继续连接直到连接次数超过了最大允许值
+    else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_DISCONNECTED)
+    {
+        if (s_retry_num < ESP_MAXIMUM_RETRY)
+        {
+            esp_wifi_connect();
+            s_retry_num++;
+            ESP_LOGI(TAG, "retry to connect to the AP");
+        }
+        else
+        {
+            //超过了最大连接次数还连不上，则置位事件组的WIFI_FAIL_BIT标志
+            xEventGroupSetBits(_wifi_event_group, WIFI_FAIL_BIT);
+        }
+        ESP_LOGI(TAG, "connect to the AP fail");
+    }
+    //在拿到IP之后事件状态会变更为IP_EVENT_STA_GOT_IP。在这里我们使用了xEventGroupSetBits，设置事件组标志，
+    else if (event_base == IP_EVENT && event_id == IP_EVENT_STA_GOT_IP)
+    {
+        //将事件传递过来的数据格式化为ip格式
+        ip_event_got_ip_t *event = (ip_event_got_ip_t *)event_data;
+        //将IP格式华为字符串打印出来
+        ESP_LOGI(TAG, "got ip:" IPSTR, IP2STR(&event->ip_info.ip));
+        s_retry_num = 0;
+        //成功获取了IP，置位事件组中的WIFI_CONNECTED_BIT标志
+        xEventGroupSetBits(_wifi_event_group, WIFI_CONNECTED_BIT);
+    }
+
 }
 
-static esp_err_t _wifi_mod_init(){
 
+
+static esp_err_t _wifi_mod_init(){
+    esp_err_t res = ESP_OK;
+    _wifi_event_group = xEventGroupCreate();   //FreeRTOS创建事件组，返回其句柄
     ESP_ERROR_CHECK(esp_netif_init());
     ESP_ERROR_CHECK(esp_event_loop_create_default());
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
@@ -220,8 +261,34 @@ static esp_err_t _wifi_mod_init(){
     ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &wifi_config));
     ESP_ERROR_CHECK(esp_wifi_start());
 
-    _mqtt_app();
-    return ESP_OK;
+
+
+    EventBits_t bits = xEventGroupWaitBits(_wifi_event_group,
+                                           WIFI_CONNECTED_BIT | WIFI_FAIL_BIT,
+                                           pdFALSE,
+                                           pdFALSE,
+                                           portMAX_DELAY);
+
+    /* xEventGroupWaitBits() returns the bits before the call returned, hence we can test which event actually
+     * happened. */
+    //测试一下回调函数把哪一个状态置位了
+    if (bits & WIFI_CONNECTED_BIT)
+    {
+        ESP_LOGI(TAG, "connected to ap");
+        
+        res = ESP_OK;
+    }
+    else if (bits & WIFI_FAIL_BIT)
+    {
+        ESP_LOGI(TAG, "Failed to connect");
+        res = ESP_FAIL;         
+    }
+    else
+    {
+        ESP_LOGE(TAG, "UNEXPECTED EVENT");
+        res = ESP_ERR_TIMEOUT;
+    }
+    return res;
 }
 
 

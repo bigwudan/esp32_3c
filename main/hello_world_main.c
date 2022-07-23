@@ -199,6 +199,10 @@ void app_main(void)
         ESP_LOGI(TAG, "wifi_mod_init_ok");
     }
 
+    if(res == ESP_OK){
+extern void _mqtt_app();
+        _mqtt_app();
+    }
 
     // if(res == ESP_OK){
     //     res = mqtt_mod_start();
