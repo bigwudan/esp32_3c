@@ -200,8 +200,8 @@ void app_main(void)
     }
 
     if(res == ESP_OK){
-extern void _mqtt_app();
-        _mqtt_app();
+
+        mqtt_mod_start();
     }
 
     // if(res == ESP_OK){
