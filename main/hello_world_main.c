@@ -112,15 +112,15 @@ lv_obj_t *label_temper;
 
 lv_obj_t *label_humidity;
 
-
+int g_mqtt_idx = 0;
 
 void _my_task(){
     static int idx = 0;
     char t_buf[64] = {0};
 
-    lv_label_set_text(label_1, test_show_buf);  // 显示数字
+    // lv_label_set_text(label_1, test_show_buf);  // 显示数字
 
-    lv_label_set_text(label_2, test_show_http_buf);  // 显示数字
+    // lv_label_set_text(label_2, test_show_http_buf);  // 显示数字
 
     sprintf(t_buf, "%.2f", show_temper);
     lv_label_set_text(label_temper, t_buf);  // 显示数字
@@ -128,18 +128,26 @@ void _my_task(){
     sprintf(t_buf, "%.2f", show_humidity);
     lv_label_set_text(label_humidity, t_buf);  // 显示数字
 
-    if(idx%2 == 0){
-       // lv_obj_set_style_local_bg_color(t_obj, 0, 0, 11);
-        lv_obj_set_style_bg_color(t_obj,lv_palette_main(LV_PALETTE_YELLOW), LV_PART_MAIN); 
+    // if(idx%2 == 0){
+     
+    //     lv_obj_set_style_bg_color(t_obj,lv_palette_main(LV_PALETTE_YELLOW), LV_PART_MAIN); 
 
 
+    // }else{
+
+    //      lv_obj_set_style_bg_color(t_obj,lv_palette_main(LV_PALETTE_ORANGE), LV_PART_MAIN); 
+
+    // }
+
+    if(g_mqtt_idx % 2 == 0){
+
+        lv_label_set_text(label_1, "close light...");  // 显示数字
     }else{
-       // lv_obj_set_style_local_bg_color(t_obj, 0, 0, 22);
-         lv_obj_set_style_bg_color(t_obj,lv_palette_main(LV_PALETTE_ORANGE), LV_PART_MAIN); 
 
+        lv_label_set_text(label_1, "open light...");  // 显示数字
     }
 
-    idx++;
+    
 
 }
 
@@ -187,7 +195,7 @@ void app_main(void)
 
     esp_err_t res;
     enum knob_state knob_res; 
-#if 1
+
     res = wifi_mod_start();
 
     if(res != ESP_OK){
@@ -204,46 +212,30 @@ void app_main(void)
         mqtt_mod_start();
     }
 
-    // if(res == ESP_OK){
-    //     res = mqtt_mod_start();
-    //     if(res != ESP_OK){
-            
-    //         ESP_LOGI(TAG, "mqtt_mod_start_no_ok");
 
-    //     }else{
-
-    //         ESP_LOGI(TAG, "mqtt_mod_start_ok");
-    //     }  
-
-    // }
  
-    while(1){
 
-        vTaskDelay(20 / portTICK_PERIOD_MS);
-
-    }
-#endif 
     //初始化i2c
     i2c_master_init();
   
 
-    //knob_init();
+
     knob_task_init();
 
     bluetooth_app();
-    fast_scan();
+
     lcd_dev_init();
     lv_init();
     lv_port_disp_init();
 
     _ui_int();
-    //lv_task_create(_my_task, 500, LV_TASK_PRIO_MID, NULL);
+ 
     while(1){
 	    vTaskDelay(20 / portTICK_PERIOD_MS);
 
         //i2c_sht20_task();
         
-        //knob_res = knob_get_state();
+ 
         knob_res =knob_task_get_state();
         if(knob_res != knob_still){
 
@@ -256,7 +248,7 @@ void app_main(void)
             
         }
         lv_task_handler();
-        //_test_task();
+     
         _my_task();
 
     }
