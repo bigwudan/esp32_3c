@@ -75,3 +75,4 @@ E:/esp32_3c/build/esp-idf/i2c_sht20/libi2c_sht20.a
 E:/esp32_3c/build/esp-idf/knob/libknob.a
 E:/esp32_3c/build/esp-idf/lcd_dev/liblcd_dev.a
 E:/esp32_3c/build/esp-idf/lvgl/liblvgl.a
+E:/esp32_3c/build/esp-idf/wifi_mod/libwifi_mod.a

@@ -46,6 +46,8 @@
 
 #include "i2c_sht20.h"
 
+#include "wifi_mod.h"
+
 
 /* GPIO Example
 
@@ -66,7 +68,7 @@
 
 
 
-
+static const char *TAG = "MAIN";
 
    float show_temper = 0;
    float show_humidity = 0;
@@ -182,8 +184,22 @@ void app_main(void)
     printf("******1111*****app_main now.\n");
     printf("******1111*****app_main now.\n");
 
-
+    esp_err_t res;
     enum knob_state knob_res; 
+
+    res = wifi_mod_start();
+
+    if(res != ESP_OK){
+        
+        ESP_LOGI(TAG, "wifi_mod_init_no_ok");
+
+    }else{
+
+        ESP_LOGI(TAG, "wifi_mod_init_ok");
+    }
+
+    
+    while(1);
  
     //初始化i2c
     i2c_master_init();

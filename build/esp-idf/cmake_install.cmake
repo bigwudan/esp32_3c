@@ -126,6 +126,7 @@ if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   include("E:/esp32_3c/build/esp-idf/knob/cmake_install.cmake")
   include("E:/esp32_3c/build/esp-idf/lcd_dev/cmake_install.cmake")
   include("E:/esp32_3c/build/esp-idf/lvgl/cmake_install.cmake")
+  include("E:/esp32_3c/build/esp-idf/wifi_mod/cmake_install.cmake")
 
 endif()
 
