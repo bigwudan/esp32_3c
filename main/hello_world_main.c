@@ -48,6 +48,7 @@
 
 #include "wifi_mod.h"
 
+#include "mqtt_mod.h"
 
 /* GPIO Example
 
@@ -186,7 +187,7 @@ void app_main(void)
 
     esp_err_t res;
     enum knob_state knob_res; 
-
+#if 0
     res = wifi_mod_start();
 
     if(res != ESP_OK){
@@ -198,9 +199,26 @@ void app_main(void)
         ESP_LOGI(TAG, "wifi_mod_init_ok");
     }
 
-    
-    while(1);
+
+    // if(res == ESP_OK){
+    //     res = mqtt_mod_start();
+    //     if(res != ESP_OK){
+            
+    //         ESP_LOGI(TAG, "mqtt_mod_start_no_ok");
+
+    //     }else{
+
+    //         ESP_LOGI(TAG, "mqtt_mod_start_ok");
+    //     }  
+
+    // }
  
+    while(1){
+
+        vTaskDelay(20 / portTICK_PERIOD_MS);
+
+    }
+#endif 
     //初始化i2c
     i2c_master_init();
   
@@ -219,7 +237,7 @@ void app_main(void)
     while(1){
 	    vTaskDelay(20 / portTICK_PERIOD_MS);
 
-        i2c_sht20_task();
+        //i2c_sht20_task();
         
         //knob_res = knob_get_state();
         knob_res =knob_task_get_state();

@@ -274,12 +274,13 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
     case MQTT_EVENT_CONNECTED:
         ESP_LOGI(TAG, "MQTT_EVENT_CONNECTED");
 
-        // msg_id = esp_mqtt_client_subscribe(client, "$sys/534093/test_no_0/dp/post/json/+", 0);
-        // ESP_LOGI(TAG, "sent subscribe successful, msg_id=%d", msg_id);
-        //$sys/534093/test_no_0/cmd/request/+ 
+
 
         //注册命令
-        msg_id = esp_mqtt_client_subscribe(client, "$sys/534093/test_no_0/cmd/request/+", 0);
+        //msg_id = esp_mqtt_client_subscribe(client, "$sys/534093/test_no_0/cmd/request/+", 0);
+
+        msg_id = esp_mqtt_client_subscribe(client, "topic1", 0);
+        
         ESP_LOGI(TAG, "sent subscribe successful, msg_id=%d", msg_id);
 #if 0     
         msg_id = esp_mqtt_client_publish(client, "$sys/534093/test_no_0/dp/post/json", "{\"id\":123,\"dp\":{\"temp\":[{\"v\":99}]}}", 0, 0, 0);
@@ -323,7 +324,10 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
     }
 }
 
-#define MQTT_URL "mqtt://@mqtts.heclouds.com"
+//#define MQTT_URL "mqtt://@mqtts.heclouds.com"
+
+
+#define MQTT_URL "120.46.207.95"
 #define MQTT_CLIENT_ID "test_no_0"
 #define MQTT_USERNAME "534093"
 #define MQTT_PASSWORD "version=2018-10-31&res=products%2F534093%2Fdevices%2Ftest_no_0&et=1670377192&method=md5&sign=z2rrvoyuHyYTyxT3zxrrgg%3D%3D"
@@ -332,7 +336,7 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
 static void mqtt_app_start(void)
 {
     esp_mqtt_client_config_t mqtt_cfg = {
-        .uri = MQTT_URL,
+        .host = MQTT_URL,
         .client_id = MQTT_CLIENT_ID,
         .username = MQTT_USERNAME,
         .password=MQTT_PASSWORD,

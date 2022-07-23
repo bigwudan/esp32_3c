@@ -154,13 +154,14 @@ esp_err_t wifi_mod_init(){
         res = ESP_ERR_TIMEOUT;
     }
 
+#if 0
     //注销一个事件句柄到WIFI_EVENT事件，如果发生任何事件（IP_EVENT_STA_GOT_IP），不再执行回调函数event_handler，无参数传递
     ESP_ERROR_CHECK(esp_event_handler_unregister(IP_EVENT, IP_EVENT_STA_GOT_IP, &event_handler));
     //注销一个事件句柄到WIFI_EVENT事件，如果发生任何事件（ESP_EVENT_ANY_ID），不再执行回调函数event_handler，无参数传递
     ESP_ERROR_CHECK(esp_event_handler_unregister(WIFI_EVENT, ESP_EVENT_ANY_ID, &event_handler));
     //FreeRTOS销毁wifi事件组
     vEventGroupDelete(_wifi_event_group);
-
+#endif
 
 
     return res;

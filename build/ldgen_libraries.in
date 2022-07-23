@@ -75,4 +75,5 @@ $<TARGET_FILE:__idf_i2c_sht20>
 $<TARGET_FILE:__idf_knob>
 $<TARGET_FILE:__idf_lcd_dev>
 $<TARGET_FILE:__idf_lvgl>
+$<TARGET_FILE:__idf_mqtt_mod>
 $<TARGET_FILE:__idf_wifi_mod>

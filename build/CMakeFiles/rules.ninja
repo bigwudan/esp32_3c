@@ -1619,6 +1619,25 @@ rule C_STATIC_LIBRARY_LINKER____idf_lvgl_
 #############################################
 # Rule for compiling C files.
 
+rule C_COMPILER____idf_mqtt_mod_
+  depfile = $DEP_FILE
+  deps = gcc
+  command = ccache D:\Espressif32\tools\riscv32-esp-elf\esp-2021r2-patch2-8.4.0\riscv32-esp-elf\bin\riscv32-esp-elf-gcc.exe $DEFINES $INCLUDES $FLAGS -MD -MT $out -MF $DEP_FILE -o $out -c $in
+  description = Building C object $out
+
+
+#############################################
+# Rule for linking C static library.
+
+rule C_STATIC_LIBRARY_LINKER____idf_mqtt_mod_
+  command = cmd.exe /C "$PRE_LINK && D:\Espressif32\tools\cmake\3.20.3\bin\cmake.exe -E rm -f $TARGET_FILE && D:\Espressif32\tools\riscv32-esp-elf\esp-2021r2-patch2-8.4.0\riscv32-esp-elf\bin\riscv32-esp-elf-ar.exe qc $TARGET_FILE $LINK_FLAGS $in && D:\Espressif32\tools\riscv32-esp-elf\esp-2021r2-patch2-8.4.0\riscv32-esp-elf\bin\riscv32-esp-elf-ranlib.exe $TARGET_FILE && $POST_BUILD"
+  description = Linking C static library $TARGET_FILE
+  restat = $RESTAT
+
+
+#############################################
+# Rule for compiling C files.
+
 rule C_COMPILER____idf_wifi_mod_
   depfile = $DEP_FILE
   deps = gcc
