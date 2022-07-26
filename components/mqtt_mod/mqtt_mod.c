@@ -93,9 +93,7 @@ static void _mqtt_event_handler(void *handler_args, esp_event_base_t base, int32
         ESP_LOGI(TAG, "MQTT_EVENT_DATA");
         printf("TOPIC=%.*s\r\n", event->topic_len, event->topic);
         printf("DATA=%.*s\r\n", event->data_len, event->data);
-        extern int g_mqtt_idx;
-        g_mqtt_idx++;
-        ESP_LOGI(TAG, "g_mqtt_id[%d]", g_mqtt_idx);
+
         break;
     case MQTT_EVENT_ERROR:
         ESP_LOGI(TAG, "MQTT_EVENT_ERROR");

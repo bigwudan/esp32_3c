@@ -28,7 +28,7 @@ E:/esp32_3c/build/esp-idf/log/liblog.a
 E:/esp32_3c/build/esp-idf/heap/libheap.a
 E:/esp32_3c/build/esp-idf/soc/libsoc.a
 E:/esp32_3c/build/esp-idf/esp_hw_support/libesp_hw_support.a
-E:/esp32_3c/build/esp-idf/riscv/libriscv.a
+E:/esp32_3c/build/esp-idf/xtensa/libxtensa.a
 E:/esp32_3c/build/esp-idf/esp_common/libesp_common.a
 E:/esp32_3c/build/esp-idf/esp_timer/libesp_timer.a
 E:/esp32_3c/build/esp-idf/freertos/libfreertos.a
@@ -36,7 +36,6 @@ E:/esp32_3c/build/esp-idf/newlib/libnewlib.a
 E:/esp32_3c/build/esp-idf/cxx/libcxx.a
 E:/esp32_3c/build/esp-idf/app_trace/libapp_trace.a
 E:/esp32_3c/build/esp-idf/asio/libasio.a
-E:/esp32_3c/build/esp-idf/bt/libbt.a
 E:/esp32_3c/build/esp-idf/cbor/libcbor.a
 E:/esp32_3c/build/esp-idf/unity/libunity.a
 E:/esp32_3c/build/esp-idf/cmock/libcmock.a
@@ -66,14 +65,11 @@ E:/esp32_3c/build/esp-idf/json/libjson.a
 E:/esp32_3c/build/esp-idf/libsodium/liblibsodium.a
 E:/esp32_3c/build/esp-idf/mqtt/libmqtt.a
 E:/esp32_3c/build/esp-idf/openssl/libopenssl.a
+E:/esp32_3c/build/esp-idf/perfmon/libperfmon.a
 E:/esp32_3c/build/esp-idf/spiffs/libspiffs.a
+E:/esp32_3c/build/esp-idf/usb/libusb.a
+E:/esp32_3c/build/esp-idf/ulp/libulp.a
 E:/esp32_3c/build/esp-idf/wifi_provisioning/libwifi_provisioning.a
 E:/esp32_3c/build/esp-idf/main/libmain.a
-E:/esp32_3c/build/esp-idf/bluetooth/libbluetooth.a
-E:/esp32_3c/build/esp-idf/http_mod/libhttp_mod.a
-E:/esp32_3c/build/esp-idf/i2c_sht20/libi2c_sht20.a
-E:/esp32_3c/build/esp-idf/knob/libknob.a
-E:/esp32_3c/build/esp-idf/lcd_dev/liblcd_dev.a
-E:/esp32_3c/build/esp-idf/lvgl/liblvgl.a
 E:/esp32_3c/build/esp-idf/mqtt_mod/libmqtt_mod.a
 E:/esp32_3c/build/esp-idf/wifi_mod/libwifi_mod.a
