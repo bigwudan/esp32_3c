@@ -6,7 +6,6 @@
    software is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
    CONDITIONS OF ANY KIND, either express or implied.
 */
-#include "esp_log.h"
 #include <stdio.h>
 #include "sdkconfig.h"
 #include "freertos/FreeRTOS.h"
@@ -14,36 +13,31 @@
 #include "esp_system.h"
 #include "esp_spi_flash.h"
 
-#include "wifi_mod.h"
-
-#include "mqtt_mod.h"
-
-static const char *TAG = "main_";
-
 void app_main(void)
 {
-   
-    esp_err_t res;
+    printf("Hello world!\n");
 
+    /* Print chip information */
+    esp_chip_info_t chip_info;
+    esp_chip_info(&chip_info);
+    printf("This is %s chip with %d CPU core(s), WiFi%s%s, ",
+            CONFIG_IDF_TARGET,
+            chip_info.cores,
+            (chip_info.features & CHIP_FEATURE_BT) ? "/BT" : "",
+            (chip_info.features & CHIP_FEATURE_BLE) ? "/BLE" : "");
 
-    res = wifi_mod_start();
+    printf("silicon revision %d, ", chip_info.revision);
 
-    if(res != ESP_OK){
-        
-        ESP_LOGI(TAG, "wifi_mod_init_no_ok");
+    printf("%dMB %s flash\n", spi_flash_get_chip_size() / (1024 * 1024),
+            (chip_info.features & CHIP_FEATURE_EMB_FLASH) ? "embedded" : "external");
 
-    }else{
+    printf("Minimum free heap size: %d bytes\n", esp_get_minimum_free_heap_size());
 
-        ESP_LOGI(TAG, "wifi_mod_init_ok");
+    for (int i = 10; i >= 0; i--) {
+        printf("Restarting in %d seconds...\n", i);
+        vTaskDelay(1000 / portTICK_PERIOD_MS);
     }
-
-    if(res == ESP_OK){
-
-        mqtt_mod_start();
-    }
-    while(1){
-	    vTaskDelay(20 / portTICK_PERIOD_MS);
-
-
-    }
+    printf("Restarting now.\n");
+    fflush(stdout);
+    esp_restart();
 }

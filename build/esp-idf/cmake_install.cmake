@@ -122,8 +122,6 @@ if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   include("E:/esp32_3c/build/esp-idf/ulp/cmake_install.cmake")
   include("E:/esp32_3c/build/esp-idf/wifi_provisioning/cmake_install.cmake")
   include("E:/esp32_3c/build/esp-idf/main/cmake_install.cmake")
-  include("E:/esp32_3c/build/esp-idf/mqtt_mod/cmake_install.cmake")
-  include("E:/esp32_3c/build/esp-idf/wifi_mod/cmake_install.cmake")
 
 endif()
 
