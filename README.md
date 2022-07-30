@@ -50,3 +50,6 @@ Please use the following feedback channels:
 * For a feature request or bug report, create a [GitHub issue](https://github.com/espressif/esp-idf/issues)
 
 We will get back to you as soon as possible.
+
+
+ xtensa-esp32s3-elf-gdb build/hello_world.elf -x gdbinit
