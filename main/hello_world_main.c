@@ -11,12 +11,9 @@
 #include "sdkconfig.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#include "esp_system.h"
-#include "esp_spi_flash.h"
 
 #include "wifi_mod.h"
 
-#include "mqtt_mod.h"
 
 static const char *TAG = "main_";
 
@@ -24,7 +21,7 @@ void app_main(void)
 {
    
     esp_err_t res;
-
+    
 
     res = wifi_mod_start();
 
@@ -35,15 +32,11 @@ void app_main(void)
     }else{
 
         ESP_LOGI(TAG, "wifi_mod_init_ok");
-    }
+    }    
 
-    if(res == ESP_OK){
-
-        mqtt_mod_start();
-    }
     while(1){
-	    vTaskDelay(20 / portTICK_PERIOD_MS);
-
+	    vTaskDelay(1000 / portTICK_PERIOD_MS);
+        ESP_LOGI(TAG, "main_task");
 
     }
 }
