@@ -60,4 +60,5 @@ E:/esp32_3c/build/esp-idf/usb/libusb.a
 E:/esp32_3c/build/esp-idf/ulp/libulp.a
 E:/esp32_3c/build/esp-idf/wifi_provisioning/libwifi_provisioning.a
 E:/esp32_3c/build/esp-idf/main/libmain.a
+E:/esp32_3c/build/esp-idf/mqtt_mod/libmqtt_mod.a
 E:/esp32_3c/build/esp-idf/wifi_mod/libwifi_mod.a

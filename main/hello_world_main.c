@@ -13,6 +13,7 @@
 #include "freertos/task.h"
 
 #include "wifi_mod.h"
+#include "mqtt_mod.h"
 
 
 static const char *TAG = "main_";
@@ -33,7 +34,10 @@ void app_main(void)
 
         ESP_LOGI(TAG, "wifi_mod_init_ok");
     }    
+    if(res == ESP_OK){
 
+        mqtt_mod_start();
+    }
     while(1){
 	    vTaskDelay(1000 / portTICK_PERIOD_MS);
         ESP_LOGI(TAG, "main_task");
