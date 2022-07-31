@@ -53,3 +53,5 @@ We will get back to you as soon as possible.
 
 
  xtensa-esp32s3-elf-gdb build/hello_world.elf -x gdbinit
+
+ openocd -f board/esp32s3-builtin.cfg

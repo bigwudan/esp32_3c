@@ -1,0 +1,9 @@
+[1/1] cmd.exe /C "cd /D E:\esp32_3c\build\esp-idf\partition_table && D:\Espressif32\tools\cmake\3.23.1\bin\cmake.exe -E echo "Partition table binary generated. Contents:" && D:\Espressif32\tools\cmake\3.23.1\bin\cmake.exe -E echo ******************************************************************************* && d:\Espressif32\python_env\idf5.0_py3.10_env\Scripts\python.exe E:/esp/esp32c3/esp-idf/components/partition_table/gen_esp32part.py -q --offset 0x8000 --flash-size 16MB E:/esp32_3c/build/partition_table/partition-table.bin && D:\Espressif32\tools\cmake\3.23.1\bin\cmake.exe -E echo *******************************************************************************"
+Partition table binary generated. Contents:
+*******************************************************************************
+# ESP-IDF Partition Table
+# Name, Type, SubType, Offset, Size, Flags
+nvs,data,nvs,0x9000,24K,
+phy_init,data,phy,0xf000,4K,
+factory,app,factory,0x10000,1M,
+*******************************************************************************
