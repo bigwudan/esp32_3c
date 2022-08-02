@@ -1,0 +1,8 @@
+{
+    "files.associations": {
+        "bluetooth.h": "c",
+        "vector": "c",
+        "xstring": "c",
+        "xutility": "c"
+    }
+}

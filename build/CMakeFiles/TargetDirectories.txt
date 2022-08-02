@@ -9,7 +9,7 @@ E:/esp32_3c/build/CMakeFiles/monitor.dir
 E:/esp32_3c/build/CMakeFiles/flash.dir
 E:/esp32_3c/build/CMakeFiles/encrypted-flash.dir
 E:/esp32_3c/build/CMakeFiles/_project_elf_src.dir
-E:/esp32_3c/build/CMakeFiles/hello_world.elf.dir
+E:/esp32_3c/build/CMakeFiles/esp32s3_app.elf.dir
 E:/esp32_3c/build/CMakeFiles/size.dir
 E:/esp32_3c/build/CMakeFiles/size-files.dir
 E:/esp32_3c/build/CMakeFiles/size-components.dir
@@ -359,6 +359,7 @@ E:/esp32_3c/build/esp-idf/esp_wifi/CMakeFiles/list_install_components.dir
 E:/esp32_3c/build/esp-idf/esp_wifi/CMakeFiles/install.dir
 E:/esp32_3c/build/esp-idf/esp_wifi/CMakeFiles/install/local.dir
 E:/esp32_3c/build/esp-idf/esp_wifi/CMakeFiles/install/strip.dir
+E:/esp32_3c/build/esp-idf/bt/CMakeFiles/__idf_bt.dir
 E:/esp32_3c/build/esp-idf/bt/CMakeFiles/edit_cache.dir
 E:/esp32_3c/build/esp-idf/bt/CMakeFiles/rebuild_cache.dir
 E:/esp32_3c/build/esp-idf/bt/CMakeFiles/list_install_components.dir
@@ -605,6 +606,13 @@ E:/esp32_3c/build/esp-idf/main/CMakeFiles/list_install_components.dir
 E:/esp32_3c/build/esp-idf/main/CMakeFiles/install.dir
 E:/esp32_3c/build/esp-idf/main/CMakeFiles/install/local.dir
 E:/esp32_3c/build/esp-idf/main/CMakeFiles/install/strip.dir
+E:/esp32_3c/build/esp-idf/bluetooth/CMakeFiles/__idf_bluetooth.dir
+E:/esp32_3c/build/esp-idf/bluetooth/CMakeFiles/edit_cache.dir
+E:/esp32_3c/build/esp-idf/bluetooth/CMakeFiles/rebuild_cache.dir
+E:/esp32_3c/build/esp-idf/bluetooth/CMakeFiles/list_install_components.dir
+E:/esp32_3c/build/esp-idf/bluetooth/CMakeFiles/install.dir
+E:/esp32_3c/build/esp-idf/bluetooth/CMakeFiles/install/local.dir
+E:/esp32_3c/build/esp-idf/bluetooth/CMakeFiles/install/strip.dir
 E:/esp32_3c/build/esp-idf/mqtt_mod/CMakeFiles/__idf_mqtt_mod.dir
 E:/esp32_3c/build/esp-idf/mqtt_mod/CMakeFiles/edit_cache.dir
 E:/esp32_3c/build/esp-idf/mqtt_mod/CMakeFiles/rebuild_cache.dir
