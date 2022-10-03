@@ -115,3 +115,4 @@ For any technical queries, please open an [issue](https://github.com/espressif/e
 
 
 1. 2022.10.3 完成lvgl和TP 移植
+2. 添加TP中断

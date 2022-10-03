@@ -24,6 +24,7 @@
 
 
 //tp i2c
+#define I2C_MASTER_INT_IO           17
 #define I2C_MASTER_SCL_IO           8      /*!< GPIO number used for I2C master clock */
 #define I2C_MASTER_SDA_IO           18      /*!< GPIO number used for I2C master data  */
 #define I2C_MASTER_NUM              0                          /*!< I2C master i2c port number, the number of i2c peripheral interfaces available will depend on the chip */
@@ -132,21 +133,29 @@ void lcd_dev_tp_scan_tp(){
     uint16_t y_pos = 0;
     uint8_t read_buf[8] = {0};
     i2c_register_read(FT_REG_NUM_FINGER, read_buf, 1);
-    if(read_buf[0] == 1){
-        i2c_register_read(FT_TP1_REG, read_buf, 4);
-        if((read_buf[0]&0X80)!=0X80) return;
-        x_pos=((uint16_t)(read_buf[0]&0X0F)<<8)+read_buf[1];
-        y_pos=((uint16_t)(read_buf[2]&0X0F)<<8)+read_buf[3];
-        
-        tp_data.x_pos = x_pos;
-        tp_data.y_pos = y_pos;
-        tp_data.press_state = 1;
+    if(gpio_get_level(I2C_MASTER_INT_IO) == 0){
+        if(read_buf[0] == 1){
+            i2c_register_read(FT_TP1_REG, read_buf, 4);
+            if((read_buf[0]&0X80)!=0X80) return;
+            x_pos=((uint16_t)(read_buf[0]&0X0F)<<8)+read_buf[1];
+            y_pos=((uint16_t)(read_buf[2]&0X0F)<<8)+read_buf[3];
+            
+            tp_data.x_pos = x_pos;
+            tp_data.y_pos = y_pos;
+            tp_data.press_state = 1;
+        }else{
+            tp_data.x_pos = 0;
+            tp_data.y_pos = 0;
+            tp_data.press_state = 0;
+
+        }
     }else{
         tp_data.x_pos = 0;
         tp_data.y_pos = 0;
         tp_data.press_state = 0;
 
     }
+
 
 
     return ;
@@ -157,6 +166,20 @@ void lcd_dev_tp_scan_tp(){
 void lcd_dev_tp_init(){
     _i2c_master_init();
     _tp_5206_init();
+
+
+        //zero-initialize the config structure.
+    gpio_config_t io_conf = {};
+	//interrupt of rising edge
+    io_conf.intr_type = GPIO_INTR_DISABLE;
+    //bit mask of the pins, use GPIO4/5 here
+    io_conf.pin_bit_mask = 1ULL<<I2C_MASTER_INT_IO;
+    //set as input mode
+    io_conf.mode = GPIO_MODE_INPUT;
+    //enable pull-up mode
+    io_conf.pull_up_en = 1;
+    gpio_config(&io_conf);
+
     return ;
 }
 
