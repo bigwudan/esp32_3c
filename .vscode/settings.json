@@ -8,6 +8,7 @@
         "i2c.h": "c",
         "task.h": "c",
         "freertos.h": "c",
-        "stdio.h": "c"
+        "stdio.h": "c",
+        "ledc.h": "c"
     }
 }
