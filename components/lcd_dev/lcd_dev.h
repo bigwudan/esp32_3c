@@ -22,4 +22,6 @@ void lcd_dev_tp_init();
 void lcd_dev_tp_scan_tp();
 
 tp_data_tag *lcd_dev_tp_get_data();
+
+void lcd_dev_set_bklight(uint8_t var_num);
 #endif
