@@ -1,0 +1,35 @@
+[0/1] Re-running CMake...
+-- ccache will be used for faster recompilation
+-- Building ESP-IDF components for target esp32s3
+-- Project sdkconfig file E:/esp32_3c/sdkconfig
+-- App "esp32s3_app" version: 25fdd7c-dirty
+-- Adding linker script E:/esp32_3c/build/esp-idf/esp_system/ld/memory.ld
+-- Adding linker script E:/esp/esp32c3/esp-idf/components/esp_system/ld/esp32s3/sections.ld.in
+-- Adding linker script E:/esp/esp32c3/esp-idf/components/esp_rom/esp32s3/ld/esp32s3.rom.ld
+-- Adding linker script E:/esp/esp32c3/esp-idf/components/esp_rom/esp32s3/ld/esp32s3.rom.api.ld
+-- Adding linker script E:/esp/esp32c3/esp-idf/components/esp_rom/esp32s3/ld/esp32s3.rom.libgcc.ld
+-- Adding linker script E:/esp/esp32c3/esp-idf/components/esp_rom/esp32s3/ld/esp32s3.rom.newlib.ld
+-- Adding linker script E:/esp/esp32c3/esp-idf/components/esp_rom/esp32s3/ld/esp32s3.rom.version.ld
+-- Adding linker script E:/esp/esp32c3/esp-idf/components/soc/esp32s3/ld/esp32s3.peripherals.ld
+-- Components: app_trace app_update bluetooth bootloader bootloader_support bt cmock console cxx driver efuse esp-tls esp_adc esp_common esp_eth esp_event esp_gdbstub esp_hid esp_http_client esp_http_server esp_https_ota esp_https_server esp_hw_support esp_lcd esp_local_ctrl esp_netif esp_phy esp_pm esp_psram esp_ringbuf esp_rom esp_serial_slave_link esp_system esp_timer esp_wifi espcoredump esptool_py fatfs freertos hal heap http_parser idf_test ieee802154 json log lwip main mbedtls mqtt mqtt_mod newlib nvs_flash openthread partition_table perfmon protobuf-c protocomm pthread sdmmc soc spi_flash spiffs tcp_transport tinyusb ulp unity usb vfs wear_levelling wifi_mod wifi_provisioning wpa_supplicant xtensa
+-- Component paths: E:/esp/esp32c3/esp-idf/components/app_trace E:/esp/esp32c3/esp-idf/components/app_update E:/esp32_3c/components/bluetooth E:/esp/esp32c3/esp-idf/components/bootloader E:/esp/esp32c3/esp-idf/components/bootloader_support E:/esp/esp32c3/esp-idf/components/bt E:/esp/esp32c3/esp-idf/components/cmock E:/esp/esp32c3/esp-idf/components/console E:/esp/esp32c3/esp-idf/components/cxx E:/esp/esp32c3/esp-idf/components/driver E:/esp/esp32c3/esp-idf/components/efuse E:/esp/esp32c3/esp-idf/components/esp-tls E:/esp/esp32c3/esp-idf/components/esp_adc E:/esp/esp32c3/esp-idf/components/esp_common E:/esp/esp32c3/esp-idf/components/esp_eth E:/esp/esp32c3/esp-idf/components/esp_event E:/esp/esp32c3/esp-idf/components/esp_gdbstub E:/esp/esp32c3/esp-idf/components/esp_hid E:/esp/esp32c3/esp-idf/components/esp_http_client E:/esp/esp32c3/esp-idf/components/esp_http_server E:/esp/esp32c3/esp-idf/components/esp_https_ota E:/esp/esp32c3/esp-idf/components/esp_https_server E:/esp/esp32c3/esp-idf/components/esp_hw_support E:/esp/esp32c3/esp-idf/components/esp_lcd E:/esp/esp32c3/esp-idf/components/esp_local_ctrl E:/esp/esp32c3/esp-idf/components/esp_netif E:/esp/esp32c3/esp-idf/components/esp_phy E:/esp/esp32c3/esp-idf/components/esp_pm E:/esp/esp32c3/esp-idf/components/esp_psram E:/esp/esp32c3/esp-idf/components/esp_ringbuf E:/esp/esp32c3/esp-idf/components/esp_rom E:/esp/esp32c3/esp-idf/components/esp_serial_slave_link E:/esp/esp32c3/esp-idf/components/esp_system E:/esp/esp32c3/esp-idf/components/esp_timer E:/esp/esp32c3/esp-idf/components/esp_wifi E:/esp/esp32c3/esp-idf/components/espcoredump E:/esp/esp32c3/esp-idf/components/esptool_py E:/esp/esp32c3/esp-idf/components/fatfs E:/esp/esp32c3/esp-idf/components/freertos E:/esp/esp32c3/esp-idf/components/hal E:/esp/esp32c3/esp-idf/components/heap E:/esp/esp32c3/esp-idf/components/http_parser E:/esp/esp32c3/esp-idf/components/idf_test E:/esp/esp32c3/esp-idf/components/ieee802154 E:/esp/esp32c3/esp-idf/components/json E:/esp/esp32c3/esp-idf/components/log E:/esp/esp32c3/esp-idf/components/lwip E:/esp32_3c/main E:/esp/esp32c3/esp-idf/components/mbedtls E:/esp/esp32c3/esp-idf/components/mqtt E:/esp32_3c/components/mqtt_mod E:/esp/esp32c3/esp-idf/components/newlib E:/esp/esp32c3/esp-idf/components/nvs_flash E:/esp/esp32c3/esp-idf/components/openthread E:/esp/esp32c3/esp-idf/components/partition_table E:/esp/esp32c3/esp-idf/components/perfmon E:/esp/esp32c3/esp-idf/components/protobuf-c E:/esp/esp32c3/esp-idf/components/protocomm E:/esp/esp32c3/esp-idf/components/pthread E:/esp/esp32c3/esp-idf/components/sdmmc E:/esp/esp32c3/esp-idf/components/soc E:/esp/esp32c3/esp-idf/components/spi_flash E:/esp/esp32c3/esp-idf/components/spiffs E:/esp/esp32c3/esp-idf/components/tcp_transport E:/esp/esp32c3/esp-idf/components/tinyusb E:/esp/esp32c3/esp-idf/components/ulp E:/esp/esp32c3/esp-idf/components/unity E:/esp/esp32c3/esp-idf/components/usb E:/esp/esp32c3/esp-idf/components/vfs E:/esp/esp32c3/esp-idf/components/wear_levelling E:/esp32_3c/components/wifi_mod E:/esp/esp32c3/esp-idf/components/wifi_provisioning E:/esp/esp32c3/esp-idf/components/wpa_supplicant E:/esp/esp32c3/esp-idf/components/xtensa
+-- Configuring done
+-- Generating done
+-- Build files have been written to: E:/esp32_3c/build
+[1/11] Performing build step for 'bootloader'
+[1/1] cmd.exe /C "cd /D E:\esp32_3c\build\bootloader\esp-idf\esptool_py && d:\Espressif32\python_env\idf5.0_py3.10_env\Scripts\python.exe E:/esp/esp32c3/esp-idf/components/partition_table/check_sizes.py --offset 0x8000 bootloader 0x0 E:/esp32_3c/build/bootloader/bootloader.bin"
+Bootloader binary size 0x5580 bytes. 0x2a80 bytes (33%) free.
+[2/9] Building C object esp-idf/app_update/CMakeFiles/__idf_app_update.dir/esp_app_desc.c.obj
+[3/9] Linking C static library esp-idf\app_update\libapp_update.a
+[4/9] Building C object esp-idf/main/CMakeFiles/__idf_main.dir/app_enter_main.c.obj
+[5/9] Linking C static library esp-idf\main\libmain.a
+[6/9] Generating ld/sections.ld
+[7/9] Linking CXX executable esp32s3_app.elf
+[8/9] Generating binary image from built executable
+esptool.py v4.1
+Creating esp32s3 image...
+Merged 2 ELF sections
+Successfully created esp32s3 image.
+Generated E:/esp32_3c/build/esp32s3_app.bin
+[9/9] cmd.exe /C "cd /D E:\esp32_3c\build\esp-idf\esptool_py && d:\Espressif32\python_env\idf5.0_py3.10_env\Scripts\python.exe E:/esp/esp32c3/esp-idf/components/partition_table/check_sizes.py --offset 0x8000 partition --type app E:/esp32_3c/build/partition_table/partition-table.bin E:/esp32_3c/build/esp32s3_app.bin"
+esp32s3_app.bin binary size 0x15bde0 bytes. Smallest app partition is 0x700000 bytes. 0x5a4220 bytes (81%) free.

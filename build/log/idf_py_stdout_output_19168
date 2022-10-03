@@ -1,0 +1,29 @@
+[1/9] Performing build step for 'bootloader'
+[1/1] cmd.exe /C "cd /D E:\esp32_3c\build\bootloader\esp-idf\esptool_py && d:\Espressif32\python_env\idf5.0_py3.10_env\Scripts\python.exe E:/esp/esp32c3/esp-idf/components/partition_table/check_sizes.py --offset 0x8000 bootloader 0x0 E:/esp32_3c/build/bootloader/bootloader.bin"
+Bootloader binary size 0x5580 bytes. 0x2a80 bytes (33%) free.
+[2/7] Building C object esp-idf/main/CMakeFiles/__idf_main.dir/app_enter_main.c.obj
+E:/esp32_3c/main/app_enter_main.c: In function 'app_main':
+E:/esp32_3c/main/app_enter_main.c:233:15: warning: unused variable 'res' [-Wunused-variable]
+  233 |     esp_err_t res;
+      |               ^~~
+At top level:
+E:/esp32_3c/main/app_enter_main.c:146:13: warning: 'example_lvgl_flush_cb' defined but not used [-Wunused-function]
+  146 | static void example_lvgl_flush_cb(int offsetx1, int offsetx2, int offsety1, int offsety2)
+      |             ^~~~~~~~~~~~~~~~~~~~~
+E:/esp32_3c/main/app_enter_main.c:57:13: warning: 'light_sleep_task' defined but not used [-Wunused-function]
+   57 | static void light_sleep_task(void *args)
+      |             ^~~~~~~~~~~~~~~~
+E:/esp32_3c/main/app_enter_main.c:36:13: warning: '_deep_sleep_wait' defined but not used [-Wunused-function]
+   36 | static void _deep_sleep_wait(){
+      |             ^~~~~~~~~~~~~~~~
+[3/7] Linking C static library esp-idf\main\libmain.a
+[4/7] Generating ld/sections.ld
+[5/7] Linking CXX executable esp32s3_app.elf
+[6/7] Generating binary image from built executable
+esptool.py v4.2.1
+Creating esp32s3 image...
+Merged 2 ELF sections
+Successfully created esp32s3 image.
+Generated E:/esp32_3c/build/esp32s3_app.bin
+[7/7] cmd.exe /C "cd /D E:\esp32_3c\build\esp-idf\esptool_py && d:\Espressif32\python_env\idf5.0_py3.10_env\Scripts\python.exe E:/esp/esp32c3/esp-idf/components/partition_table/check_sizes.py --offset 0x8000 partition --type app E:/esp32_3c/build/partition_table/partition-table.bin E:/esp32_3c/build/esp32s3_app.bin"
+esp32s3_app.bin binary size 0x39d00 bytes. Smallest app partition is 0x700000 bytes. 0x6c6300 bytes (97%) free.

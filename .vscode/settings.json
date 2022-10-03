@@ -3,6 +3,9 @@
         "bluetooth.h": "c",
         "vector": "c",
         "xstring": "c",
-        "xutility": "c"
+        "xutility": "c",
+        "rtc.h": "c",
+        "esp_lcd_panel_ops.h": "c",
+        "esp_lcd_panel_rgb.h": "c"
     }
 }
