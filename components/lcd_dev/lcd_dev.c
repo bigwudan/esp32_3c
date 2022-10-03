@@ -108,31 +108,31 @@ static void event_cb(lv_event_t * e)
         switch (idx%10)
         {
         case 0:
-            lcd_dev_set_bklight(10);
+            lcd_dev_set_bklight(5);
             break;
         case 1:
-            lcd_dev_set_bklight(20);
+            lcd_dev_set_bklight(10);
             break;  
         case 3:
-            lcd_dev_set_bklight(30);
+            lcd_dev_set_bklight(15);
             break;   
         case 4:
-            lcd_dev_set_bklight(40);
+            lcd_dev_set_bklight(20);
             break; 
         case 5:
-            lcd_dev_set_bklight(50);
+            lcd_dev_set_bklight(25);
             break;
         case 6:
-            lcd_dev_set_bklight(60);
+            lcd_dev_set_bklight(30);
             break;
         case 7:
-            lcd_dev_set_bklight(70);
+            lcd_dev_set_bklight(35);
             break;  
         case 8:
-            lcd_dev_set_bklight(80);
+            lcd_dev_set_bklight(40);
             break;   
         case 9:
-            lcd_dev_set_bklight(90);
+            lcd_dev_set_bklight(45);
             break; 
         case 10:
             lcd_dev_set_bklight(100);
