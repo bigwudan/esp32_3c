@@ -156,6 +156,16 @@ static void _lvgl_init(){
 
 static void _rgb_dev_init(){
     ESP_LOGI(TAG, "Install RGB LCD panel driver");
+
+
+    //bk
+    ESP_LOGI(TAG, "Turn off LCD backlight");
+    gpio_config_t bk_gpio_config = {
+        .mode = GPIO_MODE_OUTPUT,
+        .pin_bit_mask = 1ULL << RGB_PIN_NUM_BK_LIGHT
+    };
+    ESP_ERROR_CHECK(gpio_config(&bk_gpio_config));  
+    gpio_set_level(RGB_PIN_NUM_BK_LIGHT, 1);  
     
     esp_lcd_rgb_panel_config_t panel_config = {
         .data_width = 16, // RGB565 in parallel mode, thus 16bit in width
@@ -215,10 +225,7 @@ static void _rgb_dev_init(){
     ESP_ERROR_CHECK(esp_lcd_panel_reset(panel_handle));
     ESP_ERROR_CHECK(esp_lcd_panel_init(panel_handle));
 
-#if RGB_PIN_NUM_BK_LIGHT >= 0
-    ESP_LOGI(TAG, "Turn on LCD backlight");
-    gpio_set_level(RGB_PIN_NUM_BK_LIGHT, RGB_LCD_BK_LIGHT_ON_LEVEL);
-#endif
+
 
 
 }
