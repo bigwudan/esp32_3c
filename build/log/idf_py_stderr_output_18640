@@ -1,7 +1,0 @@
-[0;33m--- WARNING: GDB cannot open serial ports accessed as COMx[0m
-[0;33m--- Using \\.\COM22 instead...[0m
-[0;33m--- idf_monitor on \\.\COM22 115200 ---[0m
-[0;33m--- Quit: Ctrl+] | Menu: Ctrl+T | Help: Ctrl+T followed by Ctrl+H ---[0m
-[0;33m0x403754d8: call_start_cpu1 at E:/esp/esp32c3/esp-idf/components/esp_system/port/cpu_start.c:154
-[0m
-[0m

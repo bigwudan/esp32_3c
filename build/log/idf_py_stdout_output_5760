@@ -1,4 +1,0 @@
-[0/1] Re-running CMake...
-FAILED: build.ninja 
-D:\Espressif32\tools\cmake\3.23.1\bin\cmake.exe --regenerate-during-build -SE:\esp32_3c -BE:\esp32_3c\build
-CreateProcess failed: The system cannot find the file specified.

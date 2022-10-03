@@ -1,1 +1,0 @@
-cmd='D:/Espressif32/tools/cmake/3.23.1/bin/cmake.exe;-DSDKCONFIG=E:/esp32_3c/sdkconfig;-DIDF_PATH=E:/esp/esp32c3/esp-idf;-DIDF_TARGET=esp32s3;-DPYTHON_DEPS_CHECKED=1;-DPYTHON=d:/Espressif32/python_env/idf5.0_py3.10_env/Scripts/python.exe;-DEXTRA_COMPONENT_DIRS=E:/esp/esp32c3/esp-idf/components/bootloader;-DPROJECT_SOURCE_DIR=E:/esp32_3c;-GNinja;<SOURCE_DIR><SOURCE_SUBDIR>'
