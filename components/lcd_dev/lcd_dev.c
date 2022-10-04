@@ -164,6 +164,7 @@ void example_lvgl_demo_ui()
   lv_arc_set_value(arc, 40);
   lv_obj_center(arc);
 #endif
+#if 0
     lv_obj_t * btn = lv_btn_create(lv_scr_act());    // 创建按钮对象
     lv_obj_set_size(btn, 400, 200);
     lv_obj_center(btn);
@@ -175,7 +176,13 @@ void example_lvgl_demo_ui()
     lv_obj_t * info_label = lv_label_create(lv_scr_act());    //创建标签
     lv_label_set_text(info_label, "The last button event:\nNone");
 
-    lv_obj_add_event_cb(btn, event_cb, LV_EVENT_ALL, info_label);    // btn的事件，并传入标签对象  
+    lv_obj_add_event_cb(btn, event_cb, LV_EVENT_ALL, info_label);    // btn的事件，并传入标签对象
+#endif     
+    lv_obj_t * img_obj ;
+    LV_IMG_DECLARE(test_img_3);
+    img_obj = lv_img_create(lv_scr_act());
+    lv_img_set_src(img_obj, &test_img_3);
+
 }
 
 
@@ -329,7 +336,7 @@ static void _rgb_dev_init(){
             .vsync_back_porch = 0, //15
             .vsync_front_porch = 12,//12
             .vsync_pulse_width = 10,//10
-            .flags.pclk_active_neg = true,
+            .flags.pclk_active_neg = false,
 
         },
         .flags.fb_in_psram = true, // allocate frame buffer in PSRAM
