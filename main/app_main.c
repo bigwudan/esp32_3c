@@ -12,11 +12,14 @@
 #include "lcd_dev.h"
 
 #include "wifi_mod.h"
+#include "bluetooth.h"
 
 
 void app_main(void)
 {
     wifi_mod_start();
+
+    bluetooth_app();
 
     lcd_dev_init();
 
