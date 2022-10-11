@@ -12,6 +12,11 @@
         "ledc.h": "c",
         "dns.h": "c",
         "event_groups.h": "c",
-        "sx126x-board.h": "c"
+        "sx126x-board.h": "c",
+        "esp_compiler.h": "c",
+        "radio.h": "c",
+        "vector": "c",
+        "xstring": "c",
+        "xutility": "c"
     }
 }

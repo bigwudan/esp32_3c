@@ -25,6 +25,7 @@
 
 #include<stdint.h>
 #include<stdbool.h>
+#include "spi_driver.h"
 
 //#define USE_MODEM_LORA 
 

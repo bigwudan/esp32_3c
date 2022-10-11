@@ -1133,5 +1133,94 @@ void RadioIrqProcess( void )
             }
         }
     }
+#else
+    if(spi_driver_get_busy_io()==1)
+    {
+        IrqFired = false;
+
+        uint16_t irqRegs = SX126xGetIrqStatus( );
+        SX126xClearIrqStatus( IRQ_RADIO_ALL );
+        
+        if( ( irqRegs & IRQ_TX_DONE ) == IRQ_TX_DONE )
+        {
+ 
+            if( ( RadioEvents != NULL ) && ( RadioEvents->TxDone != NULL ) )
+            {
+                RadioEvents->TxDone( );
+            }
+        }
+
+        if( ( irqRegs & IRQ_RX_DONE ) == IRQ_RX_DONE )
+        {
+            uint8_t size;
+
+            SX126xGetPayload( RadioRxPayload, &size , 255 );
+            SX126xGetPacketStatus( &RadioPktStatus );
+            if( ( RadioEvents != NULL ) && ( RadioEvents->RxDone != NULL ) )
+            {
+                RadioEvents->RxDone( RadioRxPayload, size, RadioPktStatus.Params.LoRa.RssiPkt, RadioPktStatus.Params.LoRa.SnrPkt );
+            }
+        }
+
+        if( ( irqRegs & IRQ_CRC_ERROR ) == IRQ_CRC_ERROR )
+        {
+            if( ( RadioEvents != NULL ) && ( RadioEvents->RxError ) )
+            {
+                RadioEvents->RxError( );
+            }
+        }
+
+        if( ( irqRegs & IRQ_CAD_DONE ) == IRQ_CAD_DONE )
+        {
+            if( ( RadioEvents != NULL ) && ( RadioEvents->CadDone != NULL ) )
+            {
+                RadioEvents->CadDone( ( ( irqRegs & IRQ_CAD_ACTIVITY_DETECTED ) == IRQ_CAD_ACTIVITY_DETECTED ) );
+            }
+        }
+
+        if( ( irqRegs & IRQ_RX_TX_TIMEOUT ) == IRQ_RX_TX_TIMEOUT )
+        {
+            if( SX126xGetOperatingMode( ) == MODE_TX )
+            {
+                if( ( RadioEvents != NULL ) && ( RadioEvents->TxTimeout != NULL ) )
+                {
+                    RadioEvents->TxTimeout( );
+                }
+            }
+            else if( SX126xGetOperatingMode( ) == MODE_RX )
+            {
+ 
+                if( ( RadioEvents != NULL ) && ( RadioEvents->RxTimeout != NULL ) )
+                {
+                    RadioEvents->RxTimeout( );
+                }
+            }
+        }
+
+        if( ( irqRegs & IRQ_PREAMBLE_DETECTED ) == IRQ_PREAMBLE_DETECTED )
+        {
+            //__NOP( );
+        }
+
+        if( ( irqRegs & IRQ_SYNCWORD_VALID ) == IRQ_SYNCWORD_VALID )
+        {
+            //__NOP( );
+        }
+
+        if( ( irqRegs & IRQ_HEADER_VALID ) == IRQ_HEADER_VALID )
+        {
+            //__NOP( );
+        }
+
+        if( ( irqRegs & IRQ_HEADER_ERROR ) == IRQ_HEADER_ERROR )
+        {
+            if( ( RadioEvents != NULL ) && ( RadioEvents->RxTimeout != NULL ) )
+            {
+                RadioEvents->RxTimeout( );
+            }
+        }
+    }
+
+
 #endif    
 }

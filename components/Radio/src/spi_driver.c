@@ -102,4 +102,70 @@ void spi_driver_set_reset(uint8_t val){
 
 }
 
+//等待时间
+void HAL_Delay_nMS( int val ){
 
+  vTaskDelay(pdMS_TO_TICKS(10));
+  return ;
+}
+
+
+void SPI_SendData8(uint8_t Data)
+{
+	esp_err_t ret;
+	spi_transaction_t t;
+	memset(&t, 0, sizeof(t));
+	t.length = 8;
+	t.tx_buffer = &Data;
+	t.user = (void*)0;
+
+	ret = spi_device_polling_transmit(spi, &t);
+	if(ret != ESP_OK){
+		printf("*********lcd_cmd err************\n");
+	}
+}
+
+
+/**
+  * @brief  Returns the most recent received data by the SPIx/I2Sx peripheral. 
+  * @param  SPIx: where x can be 1 or 2 in SPI mode to select the SPI peripheral. 
+  * @note   SPI2 is not available for STM32F031 devices.
+  * @retval The value of the received data.
+  */
+uint8_t SPI_ReceiveData8()
+{
+    spi_transaction_t t;
+
+
+    memset(&t, 0, sizeof(t));
+    t.length=8;
+    t.flags = SPI_TRANS_USE_RXDATA;
+    t.user = (void*)1;
+    esp_err_t ret = spi_device_polling_transmit(spi, &t);
+    assert( ret == ESP_OK );
+    return t.rx_data[0];
+
+
+}
+
+/*!
+ * @brief Sends txBuffer and receives rxBuffer
+ *
+ * @param [IN] txBuffer Byte to be sent
+ * @param [OUT] rxBuffer Byte to be sent
+ * @param [IN] size Byte to be sent
+ */
+uint8_t SpiInOut( uint8_t txBuffer)
+{
+#if 0    
+      while( SPI_I2S_GetFlagStatus(SPI2, SPI_I2S_FLAG_TXE) == RESET);//µ±·¢ËÍbufferÎª¿ÕÊ±(ËµÃ÷ÉÏÒ»´ÎÊý¾ÝÒÑ¸´ÖÆµ½ÒÆÎ»¼Ä´æÆ÷ÖÐ)ÍË³ö,ÕâÊ±¿ÉÒÔÍùbufferÀïÃæÐ´Êý¾Ý
+      SPI_SendData8(SPI2, txBuffer);
+    
+      while( SPI_I2S_GetFlagStatus(SPI2, SPI_I2S_FLAG_RXNE) == RESET);//µ±½ÓÊÕbufferÎª·Ç¿ÕÊ±ÍË³ö
+      return SPI_ReceiveData8(SPI2);
+ #else
+    SPI_SendData8(txBuffer);
+    return SPI_ReceiveData8();
+ #endif     
+   
+}
