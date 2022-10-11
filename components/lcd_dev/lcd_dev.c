@@ -155,7 +155,7 @@ static void event_cb(lv_event_t * e)
 
 void example_lvgl_demo_ui()
 {
-#if 0    
+#if 1    
   /*Create an Arc*/
   lv_obj_t * arc = lv_arc_create(lv_scr_act());
   lv_obj_set_size(arc, 150, 150);
@@ -177,12 +177,13 @@ void example_lvgl_demo_ui()
     lv_label_set_text(info_label, "The last button event:\nNone");
 
     lv_obj_add_event_cb(btn, event_cb, LV_EVENT_ALL, info_label);    // btn的事件，并传入标签对象
-#endif     
+#endif 
+#if 0    
     lv_obj_t * img_obj ;
     LV_IMG_DECLARE(test_img_3);
     img_obj = lv_img_create(lv_scr_act());
     lv_img_set_src(img_obj, &test_img_3);
-
+#endif
 }
 
 

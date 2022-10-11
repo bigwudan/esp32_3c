@@ -11,6 +11,7 @@
         "stdio.h": "c",
         "ledc.h": "c",
         "dns.h": "c",
-        "event_groups.h": "c"
+        "event_groups.h": "c",
+        "sx126x-board.h": "c"
     }
 }
