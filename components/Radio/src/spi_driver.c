@@ -158,6 +158,7 @@ uint8_t SPI_ReceiveData8()
 
 }
 
+#if 0
 /*!
  * @brief Sends txBuffer and receives rxBuffer
  *
@@ -177,5 +178,30 @@ uint8_t SpiInOut( uint8_t txBuffer)
     SPI_SendData8(txBuffer);
     return SPI_ReceiveData8();
  #endif     
+   
+}
+#endif
+/*!
+ * @brief Sends txBuffer and receives rxBuffer
+ *
+ * @param [IN] txBuffer Byte to be sent
+ * @param [OUT] rxBuffer Byte to be sent
+ * @param [IN] size Byte to be sent
+ */
+uint8_t SpiInOut( uint8_t txBuffer)
+{
+
+
+    esp_err_t ret;
+
+    spi_transaction_t t = {
+        .length = 8,
+        .flags = SPI_TRANS_USE_TXDATA|SPI_TRANS_USE_RXDATA,
+        .tx_data = {txBuffer},
+        .user = NULL,
+    };
+    ret = spi_device_polling_transmit(spi, &t);
+    assert( ret == ESP_OK );
+    return t.rx_data[0]; 
    
 }
