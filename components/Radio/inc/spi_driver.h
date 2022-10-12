@@ -15,6 +15,9 @@ int spi_driver_get_intr_io();
 //设置重启状态
 void spi_driver_set_reset(uint8_t val);
 
+//设置片选
+void spi_driver_set_cs(uint8_t val);
+
 //等待时间
 void HAL_Delay_nMS( int val );
 
@@ -27,5 +30,9 @@ void HAL_Delay_nMS( int val );
  * @param [IN] size Byte to be sent
  */
 uint8_t SpiInOut( uint8_t txBuffer);
+
+void SPI_SendData8(uint8_t Data);
+
+uint8_t SPI_ReceiveData8();
 #endif
 

@@ -12,14 +12,14 @@
 
 static const char TAG[] = "spi_driver";
 
-#define RESET_IO 1
-#define INTR_IO 2
-#define BUSY_IO 3
+#define RESET_IO 3 // PB2
+#define INTR_IO 4 //PA0
+#define BUSY_IO 5 //PB10
 
-#define CS_IO  2
-#define CLK_IO 3
-#define MOSI_IO 3
-#define MISO_IO 4
+#define CS_IO  10
+#define CLK_IO 12
+#define MOSI_IO 11
+#define MISO_IO 13
 static spi_device_handle_t spi;
 
 static void IRAM_ATTR spi_ready(spi_transaction_t *trans){
@@ -46,9 +46,9 @@ esp_err_t spi_driver_init(){
     ESP_ERROR_CHECK(ret);
 
     spi_device_interface_config_t devcfg={
-        .clock_speed_hz=SPI_MASTER_FREQ_40M,           //Clock out at 10 MHz
+        .clock_speed_hz=SPI_MASTER_FREQ_8M,           //Clock out at 10 MHz
         .mode=0,                                //SPI mode 0
-        .spics_io_num=CS_IO,               //CS pin
+        .spics_io_num=-1,               //CS pin
         .queue_size=7,                          //We want to be able to queue 7 transactions at a time
         .pre_cb=spi_ready,  //Specify pre-transfer callback to handle D/C line
     };
@@ -96,16 +96,19 @@ int spi_driver_get_intr_io(){
 
 //设置重启状态
 void spi_driver_set_reset(uint8_t val){
-
   gpio_set_level(RESET_IO, val);
+}
 
 
+//设置片选
+void spi_driver_set_cs(uint8_t val){
+  gpio_set_level(CS_IO, val);
 }
 
 //等待时间
 void HAL_Delay_nMS( int val ){
 
-  vTaskDelay(pdMS_TO_TICKS(10));
+  vTaskDelay(pdMS_TO_TICKS(val));
   return ;
 }
 
