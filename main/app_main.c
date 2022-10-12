@@ -16,8 +16,11 @@
 #include "spi_driver.h"
 
 #include "esp_log.h"
+#include "driver/gpio.h"
 
 static const char TAG[] = "app_main";
+
+
 
 void app_main(void)
 {
@@ -36,13 +39,15 @@ void app_main(void)
     esp_err_t ret;
     ret = spi_driver_init();
 
+ 
+
     ESP_LOGI(TAG, "spi_driver[%d]", ret);
 
     while (1) {
         vTaskDelay(pdMS_TO_TICKS(1000));
-        spi_driver_set_cs(0);
-        ESP_LOGI(TAG, "rev SpiInOut[%02X]", SpiInOut(0xC0));
-        spi_driver_set_cs(1);
+        //SPI_SendData8(0x11);
+    
+        ESP_LOGI(TAG, "rec[0x%02X]", SPI_ReceiveData8());
     }    
 #endif
 }

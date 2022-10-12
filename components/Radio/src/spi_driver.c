@@ -113,19 +113,26 @@ void HAL_Delay_nMS( int val ){
 }
 
 
-void SPI_SendData8(uint8_t Data)
+esp_err_t SPI_SendData8(uint8_t data)
 {
-	esp_err_t ret;
-	spi_transaction_t t;
-	memset(&t, 0, sizeof(t));
-	t.length = 8;
-	t.tx_buffer = &Data;
-	t.user = (void*)0;
+    esp_err_t err;
+    err = spi_device_acquire_bus(spi, portMAX_DELAY);
+    if (err != ESP_OK) return err;
 
-	ret = spi_device_polling_transmit(spi, &t);
-	if(ret != ESP_OK){
-		printf("*********lcd_cmd err************\n");
-	}
+    spi_transaction_t t = {
+        .length = 8,
+        .flags = SPI_TRANS_USE_TXDATA,
+        .tx_data = {data},
+        .user = NULL,
+    };
+    err = spi_device_polling_transmit(spi, &t);
+
+    if (err == ESP_OK) {
+        ESP_LOGI(TAG, "transimt ok\n");
+    }
+
+    spi_device_release_bus(spi);
+    return err;
 }
 
 

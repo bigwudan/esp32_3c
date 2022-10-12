@@ -31,7 +31,7 @@ void HAL_Delay_nMS( int val );
  */
 uint8_t SpiInOut( uint8_t txBuffer);
 
-void SPI_SendData8(uint8_t Data);
+esp_err_t SPI_SendData8(uint8_t data);
 
 uint8_t SPI_ReceiveData8();
 #endif
