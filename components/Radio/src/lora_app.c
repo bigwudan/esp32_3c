@@ -322,7 +322,7 @@ static void lora_task_worker(void *aContext){
     
     while( 1 )
     {
-#if 0        
+#if 1        
         if(spi_driver_recv() == 1){
             Radio.IrqProcess( ); // Process Radio IRQ
         }

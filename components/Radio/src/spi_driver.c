@@ -90,7 +90,7 @@ esp_err_t spi_driver_init(){
     io_conf.pull_up_en = 0;
     gpio_config(&io_conf);
 
-#if 1
+#if 0
     io_conf.intr_type = GPIO_INTR_DISABLE;
     io_conf.mode = GPIO_MODE_INPUT;
     io_conf.pin_bit_mask = (1ULL<<INTR_IO);
@@ -214,6 +214,9 @@ static void IRAM_ATTR gpio_isr_handler(void* arg)
 {
     uint32_t gpio_num = (uint32_t) arg;
     xQueueSendFromISR(gpio_evt_queue, &gpio_num, NULL);
+
+    //ESP_LOGI(TAG, "[%lu][%d]", gpio_num, gpio_get_level(gpio_num));
+    
 }
 
 
@@ -221,17 +224,16 @@ static void IRAM_ATTR gpio_isr_handler(void* arg)
 static void _create_intr(){
     gpio_config_t io_conf = {};
     //interrupt of rising edge
-    io_conf.intr_type = GPIO_INTR_POSEDGE;
+    io_conf.intr_type = GPIO_INTR_HIGH_LEVEL;
     //bit mask of the pins, use GPIO4/5 here
     io_conf.pin_bit_mask = (1ULL<<INTR_IO);
     //set as input mode
     io_conf.mode = GPIO_MODE_INPUT;
     //enable pull-up mode
-    io_conf.pull_up_en = 1;
+    //io_conf.pull_up_en = 1;
     gpio_config(&io_conf);
 
-    //change gpio interrupt type for one pin
-    gpio_set_intr_type(INTR_IO, GPIO_INTR_POSEDGE);
+
 
     //create a queue to handle gpio event from isr
     gpio_evt_queue = xQueueCreate(10, sizeof(uint32_t));    
@@ -243,7 +245,7 @@ static void _create_intr(){
 uint8_t spi_driver_recv(){
     uint32_t io_num;
     if(xQueueReceive(gpio_evt_queue, &io_num, portMAX_DELAY)) {
-        printf("GPIO[%"PRIu32"] intr, val: %d\n", io_num, gpio_get_level(io_num));
+       
         return 1;
     }else{
 

@@ -1047,13 +1047,11 @@ void RadioOnDioIrq( void )
 void RadioIrqProcess( void )
 {
 
-    if(spi_driver_get_busy_io()==1)
+    if(spi_driver_get_intr_io()==1)
     {
         IrqFired = false;
-
         uint16_t irqRegs = SX126xGetIrqStatus( );
         SX126xClearIrqStatus( IRQ_RADIO_ALL );
-        
         if( ( irqRegs & IRQ_TX_DONE ) == IRQ_TX_DONE )
         {
  
