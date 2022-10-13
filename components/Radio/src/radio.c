@@ -1221,6 +1221,5 @@ void RadioIrqProcess( void )
         }
     }
 
-
 #endif    
 }

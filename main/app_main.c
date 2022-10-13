@@ -151,7 +151,8 @@ void OnTxTimeout( void );
 void OnRxTimeout( void );
 void OnRxError( void );
 static void _radio_init();
-
+//创建任务
+static void _create_task();
 
 static const char TAG[] = "app_main";
 
@@ -172,14 +173,87 @@ void app_main(void)
         lcd_dev_task();
     }
 #else
+
+#if 0
     esp_err_t ret;
     ret = spi_driver_init();
     ESP_LOGI(TAG, "spi_driver[%d]", ret);
-    _radio_init();
-    while (1) {
-        vTaskDelay(pdMS_TO_TICKS(1000));
 
-    }    
+
+    //Radio initialization
+    RadioEvents.TxDone = OnTxDone;
+    RadioEvents.RxDone = OnRxDone;
+    RadioEvents.TxTimeout = OnTxTimeout;
+    RadioEvents.RxTimeout = OnRxTimeout;
+    RadioEvents.RxError = OnRxError;
+    
+    
+    Radio.Init( &RadioEvents );
+    Radio.SetChannel( RF_FREQUENCY );
+  //  Radio.WriteBuffer(0x06C0,data,2);
+   // Radio.ReadBuffer(0x06C0,test,2);
+    
+#if defined( USE_MODEM_LORA )
+    
+    Radio.SetTxConfig( MODEM_LORA, TX_OUTPUT_POWER, 0, LORA_BANDWIDTH,
+                                   LORA_SPREADING_FACTOR, LORA_CODINGRATE,
+                                   LORA_PREAMBLE_LENGTH, LORA_FIX_LENGTH_PAYLOAD_ON,
+                                   true, 0, 0, LORA_IQ_INVERSION_ON, 3000 );
+    
+    Radio.SetRxConfig( MODEM_LORA, LORA_BANDWIDTH, LORA_SPREADING_FACTOR,
+                                   LORA_CODINGRATE, 0, LORA_PREAMBLE_LENGTH,
+                                   LORA_SYMBOL_TIMEOUT, LORA_FIX_LENGTH_PAYLOAD_ON,
+                                   0, true, 0, 0, LORA_IQ_INVERSION_ON, false );
+    
+#elif defined( USE_MODEM_FSK )
+    
+    Radio.SetTxConfig( MODEM_FSK, TX_OUTPUT_POWER, FSK_FDEV, 0,
+                                  FSK_DATARATE, 0,
+                                  FSK_PREAMBLE_LENGTH, FSK_FIX_LENGTH_PAYLOAD_ON,
+                                  true, 0, 0, 0, 3000 );
+    
+    Radio.SetRxConfig( MODEM_FSK, FSK_BANDWIDTH, FSK_DATARATE,
+                                  0, FSK_AFC_BANDWIDTH, FSK_PREAMBLE_LENGTH,
+                                  0, FSK_FIX_LENGTH_PAYLOAD_ON, 0, true,
+                                  0, 0,false, false );
+#else
+    #error "Please define a frequency band in the compiler options."
+#endif
+
+    
+    if(EnableMaster)
+    {
+          TX_Buffer[0] = 'P';
+          TX_Buffer[1] = 'I';
+          TX_Buffer[2] = 'N';
+          TX_Buffer[3] = 'G'; 
+          
+          crc_value=RadioComputeCRC(TX_Buffer,4,CRC_TYPE_IBM);//¼ÆËãµÃ³öÒª·¢ËÍÊý¾Ý°üCRCÖµ
+          TX_Buffer[4]=crc_value>>8;
+          TX_Buffer[5]=crc_value;
+          Radio.Send( TX_Buffer, 6);
+    }
+    else
+    {
+       Radio.Rx( RX_TIMEOUT_VALUE ); 
+    }
+    
+    while( 1 )
+    {
+      
+        Radio.IrqProcess( ); // Process Radio IRQ
+        vTaskDelay(pdMS_TO_TICKS(1)); //延迟500ms
+        // ESP_LOGI(TAG,"task......");
+    }
+#endif
+    esp_err_t ret;
+    ret = spi_driver_init();
+    ESP_LOGI(TAG, "spi_driver[%d]", ret);
+    _create_task();
+    while(1){
+        vTaskDelay(pdMS_TO_TICKS(50)); //延迟500ms
+        printf("wudan\n");
+    }
 #endif
 }
 
@@ -290,6 +364,83 @@ void OnRxError( void )
   
 }
 
+static void lora_task_worker(void *aContext){
+    //Radio initialization
+    RadioEvents.TxDone = OnTxDone;
+    RadioEvents.RxDone = OnRxDone;
+    RadioEvents.TxTimeout = OnTxTimeout;
+    RadioEvents.RxTimeout = OnRxTimeout;
+    RadioEvents.RxError = OnRxError;
+    
+    
+    Radio.Init( &RadioEvents );
+    Radio.SetChannel( RF_FREQUENCY );
+  //  Radio.WriteBuffer(0x06C0,data,2);
+   // Radio.ReadBuffer(0x06C0,test,2);
+    
+#if defined( USE_MODEM_LORA )
+    
+    Radio.SetTxConfig( MODEM_LORA, TX_OUTPUT_POWER, 0, LORA_BANDWIDTH,
+                                   LORA_SPREADING_FACTOR, LORA_CODINGRATE,
+                                   LORA_PREAMBLE_LENGTH, LORA_FIX_LENGTH_PAYLOAD_ON,
+                                   true, 0, 0, LORA_IQ_INVERSION_ON, 3000 );
+    
+    Radio.SetRxConfig( MODEM_LORA, LORA_BANDWIDTH, LORA_SPREADING_FACTOR,
+                                   LORA_CODINGRATE, 0, LORA_PREAMBLE_LENGTH,
+                                   LORA_SYMBOL_TIMEOUT, LORA_FIX_LENGTH_PAYLOAD_ON,
+                                   0, true, 0, 0, LORA_IQ_INVERSION_ON, false );
+    
+#elif defined( USE_MODEM_FSK )
+    
+    Radio.SetTxConfig( MODEM_FSK, TX_OUTPUT_POWER, FSK_FDEV, 0,
+                                  FSK_DATARATE, 0,
+                                  FSK_PREAMBLE_LENGTH, FSK_FIX_LENGTH_PAYLOAD_ON,
+                                  true, 0, 0, 0, 3000 );
+    
+    Radio.SetRxConfig( MODEM_FSK, FSK_BANDWIDTH, FSK_DATARATE,
+                                  0, FSK_AFC_BANDWIDTH, FSK_PREAMBLE_LENGTH,
+                                  0, FSK_FIX_LENGTH_PAYLOAD_ON, 0, true,
+                                  0, 0,false, false );
+#else
+    #error "Please define a frequency band in the compiler options."
+#endif
+
+    
+    if(EnableMaster)
+    {
+          TX_Buffer[0] = 'P';
+          TX_Buffer[1] = 'I';
+          TX_Buffer[2] = 'N';
+          TX_Buffer[3] = 'G'; 
+          
+          crc_value=RadioComputeCRC(TX_Buffer,4,CRC_TYPE_IBM);//¼ÆËãµÃ³öÒª·¢ËÍÊý¾Ý°üCRCÖµ
+          TX_Buffer[4]=crc_value>>8;
+          TX_Buffer[5]=crc_value;
+          Radio.Send( TX_Buffer, 6);
+    }
+    else
+    {
+       Radio.Rx( RX_TIMEOUT_VALUE ); 
+    }
+    
+    while( 1 )
+    {
+      
+        Radio.IrqProcess( ); // Process Radio IRQ
+        vTaskDelay(pdMS_TO_TICKS(5)); //延迟500ms
+    }
+
+    return ;
+}
+
+//创建任务
+static void _create_task(){
+
+    xTaskCreate(lora_task_worker, "ot_br_main", 4096, xTaskGetCurrentTaskHandle(), 1, NULL);
+
+}
+
+
 static void _radio_init(){
     //Radio initialization
     RadioEvents.TxDone = OnTxDone;
@@ -351,8 +502,9 @@ static void _radio_init(){
     
     while( 1 )
     {
-        vTaskDelay(pdMS_TO_TICKS(1)); //延迟500ms
+      
         Radio.IrqProcess( ); // Process Radio IRQ
+        vTaskDelay(pdMS_TO_TICKS(10)); //延迟500ms
     }
 
 
