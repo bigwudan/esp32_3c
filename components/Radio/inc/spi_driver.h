@@ -34,5 +34,7 @@ uint8_t SpiInOut( uint8_t txBuffer);
 esp_err_t SPI_SendData8(uint8_t data);
 
 uint8_t SPI_ReceiveData8();
+
+uint8_t spi_driver_recv();
 #endif
 

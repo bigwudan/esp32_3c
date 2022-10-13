@@ -20,7 +20,7 @@
 #include "crc.h"
 
 
-static const char TAG[] = "app_main";
+static const char TAG[] = "lora_app";
 
 //static const char TAG[] = "lora_app";
 
@@ -322,9 +322,15 @@ static void lora_task_worker(void *aContext){
     
     while( 1 )
     {
-      
+#if 0        
+        if(spi_driver_recv() == 1){
+            Radio.IrqProcess( ); // Process Radio IRQ
+        }
+#else
         Radio.IrqProcess( ); // Process Radio IRQ
         vTaskDelay(pdMS_TO_TICKS(5)); //延迟500ms
+#endif        
+
     }
 
     return ;
@@ -336,4 +342,6 @@ void lora_app_create_task(){
     xTaskCreate(lora_task_worker, "ot_br_main", 4096, xTaskGetCurrentTaskHandle(), 1, NULL);
 
 }
+
+
 

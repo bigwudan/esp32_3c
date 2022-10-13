@@ -5,6 +5,7 @@
 #include <string.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "freertos/queue.h"
 #include "driver/spi_master.h"
 #include "driver/gpio.h"
 
@@ -21,6 +22,9 @@ static const char TAG[] = "spi_driver";
 #define MOSI_IO 11
 #define MISO_IO 13
 static spi_device_handle_t spi;
+
+//创建中断
+static void _create_intr();
 
 static void IRAM_ATTR spi_ready(spi_transaction_t *trans){
 
@@ -86,14 +90,17 @@ esp_err_t spi_driver_init(){
     io_conf.pull_up_en = 0;
     gpio_config(&io_conf);
 
-
+#if 1
     io_conf.intr_type = GPIO_INTR_DISABLE;
     io_conf.mode = GPIO_MODE_INPUT;
     io_conf.pin_bit_mask = (1ULL<<INTR_IO);
     io_conf.pull_down_en = 0;
     io_conf.pull_up_en = 0;
     gpio_config(&io_conf);
+#else
+    _create_intr();
 
+#endif
 
     _add_cs_io();
     return ret;
@@ -173,29 +180,7 @@ uint8_t SPI_ReceiveData8()
 
 }
 
-#if 0
-/*!
- * @brief Sends txBuffer and receives rxBuffer
- *
- * @param [IN] txBuffer Byte to be sent
- * @param [OUT] rxBuffer Byte to be sent
- * @param [IN] size Byte to be sent
- */
-uint8_t SpiInOut( uint8_t txBuffer)
-{
-#if 0    
-      while( SPI_I2S_GetFlagStatus(SPI2, SPI_I2S_FLAG_TXE) == RESET);//µ±·¢ËÍbufferÎª¿ÕÊ±(ËµÃ÷ÉÏÒ»´ÎÊý¾ÝÒÑ¸´ÖÆµ½ÒÆÎ»¼Ä´æÆ÷ÖÐ)ÍË³ö,ÕâÊ±¿ÉÒÔÍùbufferÀïÃæÐ´Êý¾Ý
-      SPI_SendData8(SPI2, txBuffer);
-    
-      while( SPI_I2S_GetFlagStatus(SPI2, SPI_I2S_FLAG_RXNE) == RESET);//µ±½ÓÊÕbufferÎª·Ç¿ÕÊ±ÍË³ö
-      return SPI_ReceiveData8(SPI2);
- #else
-    SPI_SendData8(txBuffer);
-    return SPI_ReceiveData8();
- #endif     
-   
-}
-#endif
+
 /*!
  * @brief Sends txBuffer and receives rxBuffer
  *
@@ -216,16 +201,52 @@ uint8_t SpiInOut( uint8_t txBuffer)
     t.flags = SPI_TRANS_USE_TXDATA|SPI_TRANS_USE_RXDATA;
     (t.tx_data)[0] = txBuffer;
 
-#if 0
-    spi_transaction_t t = {
-        .length = 8,
-        .flags = SPI_TRANS_USE_TXDATA|SPI_TRANS_USE_RXDATA,
-        .tx_data = {txBuffer},
-        .user = NULL,
-    };
-#endif    
+
     ret = spi_device_polling_transmit(spi, &t);
     assert( ret == ESP_OK );
     return t.rx_data[0]; 
    
+}
+
+static QueueHandle_t gpio_evt_queue = NULL;
+
+static void IRAM_ATTR gpio_isr_handler(void* arg)
+{
+    uint32_t gpio_num = (uint32_t) arg;
+    xQueueSendFromISR(gpio_evt_queue, &gpio_num, NULL);
+}
+
+
+//创建中断
+static void _create_intr(){
+    gpio_config_t io_conf = {};
+    //interrupt of rising edge
+    io_conf.intr_type = GPIO_INTR_POSEDGE;
+    //bit mask of the pins, use GPIO4/5 here
+    io_conf.pin_bit_mask = (1ULL<<INTR_IO);
+    //set as input mode
+    io_conf.mode = GPIO_MODE_INPUT;
+    //enable pull-up mode
+    io_conf.pull_up_en = 1;
+    gpio_config(&io_conf);
+
+    //change gpio interrupt type for one pin
+    gpio_set_intr_type(INTR_IO, GPIO_INTR_POSEDGE);
+
+    //create a queue to handle gpio event from isr
+    gpio_evt_queue = xQueueCreate(10, sizeof(uint32_t));    
+    gpio_install_isr_service(0);
+    gpio_isr_handler_add(INTR_IO, gpio_isr_handler, (void*) INTR_IO);
+
+}
+
+uint8_t spi_driver_recv(){
+    uint32_t io_num;
+    if(xQueueReceive(gpio_evt_queue, &io_num, portMAX_DELAY)) {
+        printf("GPIO[%"PRIu32"] intr, val: %d\n", io_num, gpio_get_level(io_num));
+        return 1;
+    }else{
+
+        return 0;
+    }
 }
