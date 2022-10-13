@@ -286,29 +286,32 @@ void OnRxError( void )
 
 static void _radio_init(){
     // Radio initialization
-    RadioEvents.TxDone = OnTxDone;
-    RadioEvents.RxDone = OnRxDone;
-    RadioEvents.TxTimeout = OnTxTimeout;
-    RadioEvents.RxTimeout = OnRxTimeout;
-    RadioEvents.RxError = OnRxError;
+    // RadioEvents.TxDone = OnTxDone;
+    // RadioEvents.RxDone = OnRxDone;
+    // RadioEvents.TxTimeout = OnTxTimeout;
+    // RadioEvents.RxTimeout = OnRxTimeout;
+    // RadioEvents.RxError = OnRxError;
     
     
     Radio.Init( &RadioEvents );
 
 
-    Radio.SetChannel( RF_FREQUENCY );
+    //Radio.SetChannel( RF_FREQUENCY );
 
-    uint8_t data[2]={0x55,0xaa};
-    static uint8_t test[2];
-
+    uint8_t data[2]={0x12,0x34};
+    static uint8_t test[2] = {0};
+    //Radio.WriteBuffer(0x06C0,data,2);
     while(1){
 
+
+        
         Radio.WriteBuffer(0x06C0,data,2);
         Radio.ReadBuffer(0x06C0,test,2);
 
 
         ESP_LOGI("read:", "[%02X][%02X]", test[0], test[1]);
-        vTaskDelay(10);
+
+        vTaskDelay(pdMS_TO_TICKS(500)); //延迟500ms
     }
 
 

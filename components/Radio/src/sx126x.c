@@ -86,6 +86,7 @@ void SX126xInit( DioIrqHandler dioIrq )
 {
     SX126xReset( );
     SX126xWakeup( );
+
     SX126xSetStandby( STDBY_RC );
 
 #ifdef USE_TCXO

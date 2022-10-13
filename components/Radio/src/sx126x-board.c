@@ -67,12 +67,12 @@ void SX126xWakeup( void )
     SX126xWaitOnBusy( );
 #else
     //GPIO_WriteBit( RADIO_NSS_PORT, RADIO_NSS_PIN,Bit_RESET);
-   
+    spi_driver_set_cs(0);
     SpiInOut(RADIO_GET_STATUS);
     SpiInOut(0);
     
     //GPIO_WriteBit( RADIO_NSS_PORT, RADIO_NSS_PIN,Bit_SET);
-
+    spi_driver_set_cs(1);
     // Wait for chip to be ready.
     SX126xWaitOnBusy( );
 
@@ -101,18 +101,17 @@ void SX126xWriteCommand( RadioCommands_t command, uint8_t *buffer, uint16_t size
     }
 #else
     SX126xCheckDeviceReady( );
-
     //GPIO_WriteBit( RADIO_NSS_PORT, RADIO_NSS_PIN,Bit_RESET);
-
+    spi_driver_set_cs(0);
     SpiInOut(( uint8_t )command );
-
+    
     for( uint16_t i = 0; i < size; i++ )
     {
         SpiInOut(buffer[i] );
     }
 
     //GPIO_WriteBit( RADIO_NSS_PORT, RADIO_NSS_PIN,Bit_SET);
-    
+    spi_driver_set_cs(1);
     if( command != RADIO_SET_SLEEP )
     {
         SX126xWaitOnBusy( );
@@ -143,7 +142,7 @@ void SX126xReadCommand( RadioCommands_t command, uint8_t *buffer, uint16_t size 
     SX126xCheckDeviceReady( );
 
     //GPIO_WriteBit( RADIO_NSS_PORT, RADIO_NSS_PIN,Bit_RESET);
-
+    spi_driver_set_cs(0);
     SpiInOut(( uint8_t )command );
     SpiInOut(0x00 );
     for( uint16_t i = 0; i < size; i++ )
@@ -152,7 +151,7 @@ void SX126xReadCommand( RadioCommands_t command, uint8_t *buffer, uint16_t size 
     }
 
     //GPIO_WriteBit( RADIO_NSS_PORT, RADIO_NSS_PIN,Bit_SET);
-
+    spi_driver_set_cs(1);
     SX126xWaitOnBusy( );
 #endif    
 }
@@ -181,7 +180,7 @@ void SX126xWriteRegisters( uint16_t address, uint8_t *buffer, uint16_t size )
     SX126xCheckDeviceReady( );
 
     //GPIO_WriteBit( RADIO_NSS_PORT, RADIO_NSS_PIN,Bit_RESET);
-    
+    spi_driver_set_cs(0);
     SpiInOut(RADIO_WRITE_REGISTER );
     SpiInOut(( address & 0xFF00 ) >> 8 );
     SpiInOut( address & 0x00FF );
@@ -193,7 +192,7 @@ void SX126xWriteRegisters( uint16_t address, uint8_t *buffer, uint16_t size )
 
 
     //GPIO_WriteBit( RADIO_NSS_PORT, RADIO_NSS_PIN,Bit_SET);
-
+    spi_driver_set_cs(1);
     SX126xWaitOnBusy( );
 
 #endif 
@@ -230,7 +229,7 @@ void SX126xReadRegisters( uint16_t address, uint8_t *buffer, uint16_t size )
     SX126xCheckDeviceReady( );
 
     //GPIO_WriteBit( RADIO_NSS_PORT, RADIO_NSS_PIN,Bit_RESET);
-
+    spi_driver_set_cs(0);
     SpiInOut(RADIO_READ_REGISTER );
     SpiInOut(( address & 0xFF00 ) >> 8 );
     SpiInOut( address & 0x00FF );
@@ -241,7 +240,7 @@ void SX126xReadRegisters( uint16_t address, uint8_t *buffer, uint16_t size )
     }
 
     //GPIO_WriteBit( RADIO_NSS_PORT, RADIO_NSS_PIN,Bit_SET);
-
+    spi_driver_set_cs(1);
     SX126xWaitOnBusy( );
 #endif    
 }
@@ -274,7 +273,7 @@ void SX126xWriteBuffer( uint8_t offset, uint8_t *buffer, uint8_t size )
     SX126xCheckDeviceReady( );
 
     //GPIO_WriteBit( RADIO_NSS_PORT, RADIO_NSS_PIN,Bit_RESET);
-    
+    spi_driver_set_cs(0);
     SpiInOut( RADIO_WRITE_BUFFER );
     SpiInOut( offset );
     for( uint16_t i = 0; i < size; i++ )
@@ -283,7 +282,7 @@ void SX126xWriteBuffer( uint8_t offset, uint8_t *buffer, uint8_t size )
     }
 
     //GPIO_WriteBit( RADIO_NSS_PORT, RADIO_NSS_PIN,Bit_SET);
-
+    spi_driver_set_cs(1);
     SX126xWaitOnBusy( );
 #endif    
 }
@@ -310,7 +309,7 @@ void SX126xReadBuffer( uint8_t offset, uint8_t *buffer, uint8_t size )
     SX126xCheckDeviceReady( );
 
     //GPIO_WriteBit( RADIO_NSS_PORT, RADIO_NSS_PIN,Bit_RESET);
-
+    spi_driver_set_cs(0);
     SpiInOut(  RADIO_READ_BUFFER );
     SpiInOut(  offset );
     SpiInOut(  0 );
@@ -320,7 +319,7 @@ void SX126xReadBuffer( uint8_t offset, uint8_t *buffer, uint8_t size )
     }
 
     //GPIO_WriteBit( RADIO_NSS_PORT, RADIO_NSS_PIN,Bit_SET);
-    
+    spi_driver_set_cs(1);
     SX126xWaitOnBusy( );
 #endif    
 }

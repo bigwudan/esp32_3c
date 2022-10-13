@@ -17,6 +17,9 @@
         "radio.h": "c",
         "vector": "c",
         "xstring": "c",
-        "xutility": "c"
+        "xutility": "c",
+        "iosfwd": "c",
+        "regex": "c",
+        "xlocale": "c"
     }
 }

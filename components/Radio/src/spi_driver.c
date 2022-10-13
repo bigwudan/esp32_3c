@@ -29,6 +29,19 @@ static void IRAM_ATTR spi_ready(spi_transaction_t *trans){
 }
 
 
+//增加cs
+static void _add_cs_io(){
+
+    gpio_config_t io_conf = {};
+    io_conf.intr_type = GPIO_INTR_DISABLE;
+    io_conf.mode = GPIO_MODE_OUTPUT;
+    io_conf.pin_bit_mask = (1ULL<<CS_IO);
+    io_conf.pull_down_en = 0;
+    io_conf.pull_up_en = 0;
+    gpio_config(&io_conf);
+
+}
+
 esp_err_t spi_driver_init(){
     //初始化spi
     esp_err_t ret;
@@ -42,11 +55,11 @@ esp_err_t spi_driver_init(){
         .max_transfer_sz = 1024,
     };
     //Initialize the SPI bus
-    ret = spi_bus_initialize(SPI2_HOST, &buscfg, SPI_DMA_CH_AUTO);
+    ret = spi_bus_initialize(SPI2_HOST, &buscfg, SPI_DMA_DISABLED);
     ESP_ERROR_CHECK(ret);
 
     spi_device_interface_config_t devcfg={
-        .clock_speed_hz=SPI_MASTER_FREQ_10M,           //Clock out at 10 MHz
+        .clock_speed_hz=SPI_MASTER_FREQ_8M,           //Clock out at 10 MHz
         .mode=0,                                //SPI mode 0
         .spics_io_num=-1,               //CS pin
         .queue_size=7,                          //We want to be able to queue 7 transactions at a time
@@ -81,6 +94,8 @@ esp_err_t spi_driver_init(){
     io_conf.pull_up_en = 0;
     gpio_config(&io_conf);
 
+
+    _add_cs_io();
     return ret;
 }
 
@@ -193,13 +208,22 @@ uint8_t SpiInOut( uint8_t txBuffer)
 
 
     esp_err_t ret;
+    spi_transaction_t t;
 
+
+    memset(&t, 0, sizeof(t));
+    t.length = 8;
+    t.flags = SPI_TRANS_USE_TXDATA|SPI_TRANS_USE_RXDATA;
+    (t.tx_data)[0] = txBuffer;
+
+#if 0
     spi_transaction_t t = {
         .length = 8,
         .flags = SPI_TRANS_USE_TXDATA|SPI_TRANS_USE_RXDATA,
         .tx_data = {txBuffer},
         .user = NULL,
     };
+#endif    
     ret = spi_device_polling_transmit(spi, &t);
     assert( ret == ESP_OK );
     return t.rx_data[0]; 
