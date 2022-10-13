@@ -20,6 +20,8 @@
         "xutility": "c",
         "iosfwd": "c",
         "regex": "c",
-        "xlocale": "c"
+        "xlocale": "c",
+        "algorithm": "c",
+        "cstring": "c"
     }
 }

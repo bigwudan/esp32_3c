@@ -3,7 +3,7 @@
  *
  * SPDX-License-Identifier: CC0-1.0
  */
-
+#include <string.h>
 #include <stdio.h>
 #include "sdkconfig.h"
 #include "freertos/FreeRTOS.h"
@@ -19,6 +19,10 @@
 
 #include "esp_log.h"
 #include "driver/gpio.h"
+
+#include "crc.h"
+
+
 
 /**************************************************************************************************************************************
 Demo ³ÌÐòÁ÷³Ì  EnableMaster=true  ÎªÖ÷»ú¶Ë£¬Ö÷»ú¶Ë·¢ËÍÒ»¸ö"PING"Êý¾ÝºóÇÐ»»µ½½ÓÊÕ£¬µÈ´ý´Ó»ú·µ»ØµÄÓ¦´ð"PONG"Êý¾ÝLEDÉÁË¸
@@ -127,6 +131,8 @@ typedef enum
 #define RX_TIMEOUT_VALUE                            1000
 #define BUFFER_SIZE                                 64 // Define the payload size here
 
+#define LedToggle() do{ESP_LOGI(TAG, "[%s][%d]", __func__, __LINE__);}while(0)
+
 const uint8_t PingMsg[] = "PING";
 const uint8_t PongMsg[] = "PONG";
 
@@ -187,52 +193,52 @@ void OnTxDone( void )
 
 void OnRxDone( uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr )
 {
-    // BufferSize = size;
-    // memcpy( RX_Buffer, payload, BufferSize );
-    // RssiValue = rssi;
-    // SnrValue = snr;
+    BufferSize = size;
+    memcpy( RX_Buffer, payload, BufferSize );
+    RssiValue = rssi;
+    SnrValue = snr;
     
-    // Radio.Standby();
+    Radio.Standby();
     
-    // if(EnableMaster)
-    // {
-    //   if(memcmp(RX_Buffer,PongMsg,4)==0)
-    //   {
-    //     LedToggle();//LEDÉÁË¸
+    if(EnableMaster)
+    {
+      if(memcmp(RX_Buffer,PongMsg,4)==0)
+      {
+        LedToggle();//LEDÉÁË¸
         
-    //   }
+      }
      
-    //     TX_Buffer[0] = 'P';
-    //     TX_Buffer[1] = 'I';
-    //     TX_Buffer[2] = 'N';
-    //     TX_Buffer[3] = 'G'; 
+        TX_Buffer[0] = 'P';
+        TX_Buffer[1] = 'I';
+        TX_Buffer[2] = 'N';
+        TX_Buffer[3] = 'G'; 
         
-    //     crc_value=RadioComputeCRC(TX_Buffer,4,CRC_TYPE_IBM);//¼ÆËãµÃ³öÒª·¢ËÍÊý¾Ý°üCRCÖµ
-    //     TX_Buffer[4]=crc_value>>8;
-    //     TX_Buffer[5]=crc_value;
-    //     Radio.Send( TX_Buffer, 6);
-    // }
-    // else
-    // {
-    //   if(memcmp(RX_Buffer,PingMsg,4)==0)
-    //   {
-    //     LedToggle();//LEDÉÁË¸
+        crc_value=RadioComputeCRC(TX_Buffer,4,CRC_TYPE_IBM);//¼ÆËãµÃ³öÒª·¢ËÍÊý¾Ý°üCRCÖµ
+        TX_Buffer[4]=crc_value>>8;
+        TX_Buffer[5]=crc_value;
+        Radio.Send( TX_Buffer, 6);
+    }
+    else
+    {
+      if(memcmp(RX_Buffer,PingMsg,4)==0)
+      {
+        LedToggle();//LEDÉÁË¸
         
-    //     TX_Buffer[0] = 'P';
-    //     TX_Buffer[1] = 'O';
-    //     TX_Buffer[2] = 'N';
-    //     TX_Buffer[3] = 'G'; 
+        TX_Buffer[0] = 'P';
+        TX_Buffer[1] = 'O';
+        TX_Buffer[2] = 'N';
+        TX_Buffer[3] = 'G'; 
         
-    //     crc_value=RadioComputeCRC(TX_Buffer,4,CRC_TYPE_IBM);//¼ÆËãµÃ³öÒª·¢ËÍÊý¾Ý°üCRCÖµ
-    //     TX_Buffer[4]=crc_value>>8;
-    //     TX_Buffer[5]=crc_value;
-    //     Radio.Send( TX_Buffer, 6);
-    //   }
-    //   else
-    //   {
-    //     Radio.Rx( RX_TIMEOUT_VALUE ); 
-    //   }   
-    // }
+        crc_value=RadioComputeCRC(TX_Buffer,4,CRC_TYPE_IBM);//¼ÆËãµÃ³öÒª·¢ËÍÊý¾Ý°üCRCÖµ
+        TX_Buffer[4]=crc_value>>8;
+        TX_Buffer[5]=crc_value;
+        Radio.Send( TX_Buffer, 6);
+      }
+      else
+      {
+        Radio.Rx( RX_TIMEOUT_VALUE ); 
+      }   
+    }
 }
 
 void OnTxTimeout( void )
@@ -242,77 +248,114 @@ void OnTxTimeout( void )
 
 void OnRxTimeout( void )
 {
-    // Radio.Standby();
-    // if(EnableMaster)
-    // {
-    //     TX_Buffer[0] = 'P';
-    //     TX_Buffer[1] = 'I';
-    //     TX_Buffer[2] = 'N';
-    //     TX_Buffer[3] = 'G'; 
+    Radio.Standby();
+    if(EnableMaster)
+    {
+        TX_Buffer[0] = 'P';
+        TX_Buffer[1] = 'I';
+        TX_Buffer[2] = 'N';
+        TX_Buffer[3] = 'G'; 
         
-    //     crc_value=RadioComputeCRC(TX_Buffer,4,CRC_TYPE_IBM);//¼ÆËãµÃ³öÒª·¢ËÍÊý¾Ý°üCRCÖµ
-    //     TX_Buffer[4]=crc_value>>8;
-    //     TX_Buffer[5]=crc_value;
-    //     Radio.Send( TX_Buffer, 6);
-    // }
-    // else
-    // {
-    //   Radio.Rx( RX_TIMEOUT_VALUE ); 
-    // }
+        crc_value=RadioComputeCRC(TX_Buffer,4,CRC_TYPE_IBM);//¼ÆËãµÃ³öÒª·¢ËÍÊý¾Ý°üCRCÖµ
+        TX_Buffer[4]=crc_value>>8;
+        TX_Buffer[5]=crc_value;
+        Radio.Send( TX_Buffer, 6);
+    }
+    else
+    {
+      Radio.Rx( RX_TIMEOUT_VALUE ); 
+    }
 }
 
 void OnRxError( void )
 {
 
-    // Radio.Standby();
-    // if(EnableMaster)
-    // {
-    //     TX_Buffer[0] = 'P';
-    //     TX_Buffer[1] = 'I';
-    //     TX_Buffer[2] = 'N';
-    //     TX_Buffer[3] = 'G'; 
+    Radio.Standby();
+    if(EnableMaster)
+    {
+        TX_Buffer[0] = 'P';
+        TX_Buffer[1] = 'I';
+        TX_Buffer[2] = 'N';
+        TX_Buffer[3] = 'G'; 
         
-    //     crc_value=RadioComputeCRC(TX_Buffer,4,CRC_TYPE_IBM);//¼ÆËãµÃ³öÒª·¢ËÍÊý¾Ý°üCRCÖµ
-    //     TX_Buffer[4]=crc_value>>8;
-    //     TX_Buffer[5]=crc_value;
-    //     Radio.Send( TX_Buffer, 6);
-    // }
-    // else
-    // {
-    //   Radio.Rx( RX_TIMEOUT_VALUE ); 
-    // }
+        crc_value=RadioComputeCRC(TX_Buffer,4,CRC_TYPE_IBM);//¼ÆËãµÃ³öÒª·¢ËÍÊý¾Ý°üCRCÖµ
+        TX_Buffer[4]=crc_value>>8;
+        TX_Buffer[5]=crc_value;
+        Radio.Send( TX_Buffer, 6);
+    }
+    else
+    {
+      Radio.Rx( RX_TIMEOUT_VALUE ); 
+    }
   
 }
 
 static void _radio_init(){
-    // Radio initialization
-    // RadioEvents.TxDone = OnTxDone;
-    // RadioEvents.RxDone = OnRxDone;
-    // RadioEvents.TxTimeout = OnTxTimeout;
-    // RadioEvents.RxTimeout = OnRxTimeout;
-    // RadioEvents.RxError = OnRxError;
+    //Radio initialization
+    RadioEvents.TxDone = OnTxDone;
+    RadioEvents.RxDone = OnRxDone;
+    RadioEvents.TxTimeout = OnTxTimeout;
+    RadioEvents.RxTimeout = OnRxTimeout;
+    RadioEvents.RxError = OnRxError;
     
     
     Radio.Init( &RadioEvents );
+    Radio.SetChannel( RF_FREQUENCY );
+  //  Radio.WriteBuffer(0x06C0,data,2);
+   // Radio.ReadBuffer(0x06C0,test,2);
+    
+#if defined( USE_MODEM_LORA )
+    
+    Radio.SetTxConfig( MODEM_LORA, TX_OUTPUT_POWER, 0, LORA_BANDWIDTH,
+                                   LORA_SPREADING_FACTOR, LORA_CODINGRATE,
+                                   LORA_PREAMBLE_LENGTH, LORA_FIX_LENGTH_PAYLOAD_ON,
+                                   true, 0, 0, LORA_IQ_INVERSION_ON, 3000 );
+    
+    Radio.SetRxConfig( MODEM_LORA, LORA_BANDWIDTH, LORA_SPREADING_FACTOR,
+                                   LORA_CODINGRATE, 0, LORA_PREAMBLE_LENGTH,
+                                   LORA_SYMBOL_TIMEOUT, LORA_FIX_LENGTH_PAYLOAD_ON,
+                                   0, true, 0, 0, LORA_IQ_INVERSION_ON, false );
+    
+#elif defined( USE_MODEM_FSK )
+    
+    Radio.SetTxConfig( MODEM_FSK, TX_OUTPUT_POWER, FSK_FDEV, 0,
+                                  FSK_DATARATE, 0,
+                                  FSK_PREAMBLE_LENGTH, FSK_FIX_LENGTH_PAYLOAD_ON,
+                                  true, 0, 0, 0, 3000 );
+    
+    Radio.SetRxConfig( MODEM_FSK, FSK_BANDWIDTH, FSK_DATARATE,
+                                  0, FSK_AFC_BANDWIDTH, FSK_PREAMBLE_LENGTH,
+                                  0, FSK_FIX_LENGTH_PAYLOAD_ON, 0, true,
+                                  0, 0,false, false );
+#else
+    #error "Please define a frequency band in the compiler options."
+#endif
 
-
-    //Radio.SetChannel( RF_FREQUENCY );
-
-    uint8_t data[2]={0x12,0x34};
-    static uint8_t test[2] = {0};
-    //Radio.WriteBuffer(0x06C0,data,2);
-    while(1){
-
-
-        
-        Radio.WriteBuffer(0x06C0,data,2);
-        Radio.ReadBuffer(0x06C0,test,2);
-
-
-        ESP_LOGI("read:", "[%02X][%02X]", test[0], test[1]);
-
-        vTaskDelay(pdMS_TO_TICKS(500)); //延迟500ms
+    
+    if(EnableMaster)
+    {
+          TX_Buffer[0] = 'P';
+          TX_Buffer[1] = 'I';
+          TX_Buffer[2] = 'N';
+          TX_Buffer[3] = 'G'; 
+          
+          crc_value=RadioComputeCRC(TX_Buffer,4,CRC_TYPE_IBM);//¼ÆËãµÃ³öÒª·¢ËÍÊý¾Ý°üCRCÖµ
+          TX_Buffer[4]=crc_value>>8;
+          TX_Buffer[5]=crc_value;
+          Radio.Send( TX_Buffer, 6);
     }
+    else
+    {
+       Radio.Rx( RX_TIMEOUT_VALUE ); 
+    }
+    
+    while( 1 )
+    {
+        vTaskDelay(pdMS_TO_TICKS(1)); //延迟500ms
+        Radio.IrqProcess( ); // Process Radio IRQ
+    }
+
+
 
 
 
