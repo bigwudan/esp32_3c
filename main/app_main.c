@@ -53,9 +53,11 @@ void show_task(){
     //printf("[%lld][%ld]", ts_now.tv_sec, ts_now.tv_usec);
     ESP_LOGI(TAG,"[%lld][%ld]", ts_now.tv_sec, ts_now.tv_usec);
 }
-
+#include "LoRaMac.h"
 void app_main(void)
 {
+   LoRaMacQueryTxPossible(10, NULL);
+
 #if 0    
     wifi_mod_start();
 

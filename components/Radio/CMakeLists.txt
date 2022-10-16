@@ -1,3 +1,4 @@
-idf_component_register(SRCS "src/crc.c" "src/radio.c" "src/sx126x-board.c" "src/sx126x.c" "src/spi_driver.c" "src/lora_app.c"
-                    INCLUDE_DIRS "inc/."
+idf_component_register( 
+                    SRC_DIRS src mac mac/region system
+                    INCLUDE_DIRS inc/. mac/. mac/region/. system/. boards/.
 					PRIV_REQUIRES driver esp_timer)
