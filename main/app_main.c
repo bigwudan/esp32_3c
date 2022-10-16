@@ -24,12 +24,35 @@
 
 #include "lora_app.h"
 
-
-
+#include <time.h>
+#include <sys/time.h>
 static const char TAG[] = "app_main";
 
 
+int show_time(void)
+{
+    // time_t t;
+    // struct tm *gmt, *area;
+    // tzset(); /* tzset()设置时区*/
+    // t = time(NULL);
+    // area = localtime(&t);
+    // printf("Local time is: %s", asctime(area));
+    // gmt = gmtime(&t);
+    // printf("GMT is: %s", asctime(gmt));
+    return 0;
+}
 
+void show_task(){
+    // time_t t =0;
+    // struct tm *gmt;    
+    // gmt = gmtime(&t);
+    // printf("GMT is: %s", asctime(gmt));
+    struct timeval ts_now;
+    gettimeofday(&ts_now, NULL);
+    //ESP_LOGI(TAG, "[%lds][%lds]", ts_now.tv_sec, ts_now.tv_usec);
+    //printf("[%lld][%ld]", ts_now.tv_sec, ts_now.tv_usec);
+    ESP_LOGI(TAG,"[%lld][%ld]", ts_now.tv_sec, ts_now.tv_usec);
+}
 
 void app_main(void)
 {
@@ -122,11 +145,15 @@ void app_main(void)
     ret = spi_driver_init();
     ESP_LOGI(TAG, "spi_driver[%d]", ret);
    lora_app_create_task();
+   show_time();
     while(1){
         vTaskDelay(pdMS_TO_TICKS(50)); //延迟500ms
+        show_task();
        
     }
 #endif
 }
+
+
 
 
