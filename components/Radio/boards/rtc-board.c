@@ -106,6 +106,7 @@ static int16_t McuWakeUpTimeCal = 0;
 
 void RtcInit( void )
 {
+    // uwadn
     // RTC_DateTypeDef date;
     // RTC_TimeTypeDef time;
 
