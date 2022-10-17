@@ -6,6 +6,6 @@
 //创建任务
 void lora_app_create_task();
 
-
+void lorawan_main();
 #endif
 

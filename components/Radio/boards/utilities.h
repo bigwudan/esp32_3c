@@ -135,12 +135,12 @@ int8_t Nibble2HexChar( uint8_t a );
 /*!
  * Begins critical section
  */
-#define CRITICAL_SECTION_BEGIN( ) uint32_t mask; BoardCriticalSectionBegin( &mask )
+#define CRITICAL_SECTION_BEGIN( ) 
 
 /*!
  * Ends critical section
  */
-#define CRITICAL_SECTION_END( ) BoardCriticalSectionEnd( &mask )
+#define CRITICAL_SECTION_END( ) 
 
 /*
  * ============================================================================

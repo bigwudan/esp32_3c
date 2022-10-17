@@ -23,6 +23,10 @@
         "xlocale": "c",
         "algorithm": "c",
         "cstring": "c",
-        "loramac.h": "c"
+        "loramac.h": "c",
+        "stdbool.h": "c",
+        "crc.h": "c",
+        "utilities.h": "c",
+        "board.h": "c"
     }
 }

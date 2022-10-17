@@ -53,10 +53,10 @@ void show_task(){
     //printf("[%lld][%ld]", ts_now.tv_sec, ts_now.tv_usec);
     ESP_LOGI(TAG,"[%lld][%ld]", ts_now.tv_sec, ts_now.tv_usec);
 }
-#include "LoRaMac.h"
+
 void app_main(void)
 {
-   LoRaMacQueryTxPossible(10, NULL);
+
 
 #if 0    
     wifi_mod_start();
@@ -143,16 +143,17 @@ void app_main(void)
         // ESP_LOGI(TAG,"task......");
     }
 #endif
-    esp_err_t ret;
-    ret = spi_driver_init();
-    ESP_LOGI(TAG, "spi_driver[%d]", ret);
-   lora_app_create_task();
-   show_time();
-    while(1){
-        vTaskDelay(pdMS_TO_TICKS(50)); //延迟500ms
-        show_task();
+//     esp_err_t ret;
+//     ret = spi_driver_init();
+//     ESP_LOGI(TAG, "spi_driver[%d]", ret);
+//    lora_app_create_task();
+//    show_time();
+//     while(1){
+//         vTaskDelay(pdMS_TO_TICKS(50)); //延迟500ms
+//         show_task();
        
-    }
+//     }
+    lorawan_main();
 #endif
 }
 

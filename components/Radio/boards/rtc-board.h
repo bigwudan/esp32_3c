@@ -47,6 +47,8 @@
  */
 #define RTC_TEMP_DEV_TURNOVER                           ( 5.0 )
 
+
+
 /*!
  * \brief Initializes the RTC timer
  *
