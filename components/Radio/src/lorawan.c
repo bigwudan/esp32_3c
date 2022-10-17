@@ -994,6 +994,7 @@ void lorawan_main( void )
     uint8_t devEui[] = LORAWAN_DEVICE_EUI;
     uint8_t joinEui[] = LORAWAN_JOIN_EUI;
 
+    lora_app_init();
     //BoardInitMcu( );
     // BoardInitPeriph( );
 
@@ -1017,7 +1018,10 @@ void lorawan_main( void )
         // Process Radio IRQ
         if( Radio.IrqProcess != NULL )
         {
-            Radio.IrqProcess( );
+            if(spi_driver_recv() == 1){
+                Radio.IrqProcess( ); // Process Radio IRQ
+            }
+            
         }
         // Processes the LoRaMac events
         LoRaMacProcess( );
@@ -1115,11 +1119,11 @@ void lorawan_main( void )
             {
                 TimerInit( &TxNextPacketTimer, OnTxNextPacketTimerEvent );
 
-                TimerInit( &Led1Timer, OnLed1TimerEvent );
-                TimerSetValue( &Led1Timer, 25 );
+                // TimerInit( &Led1Timer, OnLed1TimerEvent );
+                // TimerSetValue( &Led1Timer, 25 );
 
-                TimerInit( &Led3Timer, OnLed3TimerEvent );
-                TimerSetValue( &Led3Timer, 25 );
+                // TimerInit( &Led3Timer, OnLed3TimerEvent );
+                // TimerSetValue( &Led3Timer, 25 );
 
                 mibReq.Type = MIB_PUBLIC_NETWORK;
                 mibReq.Param.EnablePublicNetwork = LORAWAN_PUBLIC_NETWORK;

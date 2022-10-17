@@ -7,5 +7,7 @@
 void lora_app_create_task();
 
 void lorawan_main();
+
+void lora_app_init();
 #endif
 

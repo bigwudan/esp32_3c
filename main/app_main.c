@@ -143,9 +143,9 @@ void app_main(void)
         // ESP_LOGI(TAG,"task......");
     }
 #endif
-//     esp_err_t ret;
-//     ret = spi_driver_init();
-//     ESP_LOGI(TAG, "spi_driver[%d]", ret);
+    esp_err_t ret;
+    ret = spi_driver_init();
+    ESP_LOGI(TAG, "spi_driver[%d]", ret);
 //    lora_app_create_task();
 //    show_time();
 //     while(1){

@@ -27,6 +27,7 @@
         "stdbool.h": "c",
         "crc.h": "c",
         "utilities.h": "c",
-        "board.h": "c"
+        "board.h": "c",
+        "lora_app.h": "c"
     }
 }
