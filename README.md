@@ -1,7 +1,7 @@
 | Supported Targets | ESP32-S3 |
 | ----------------- | -------- |
 
-# RGB LCD Panel Example
+# RGB LwwwCD Panel Example
 
 [esp_lcd](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/peripherals/lcd.html) supports RGB interfaced LCD panel, with one or two frame buffer(s) managed by the driver itself.
 
