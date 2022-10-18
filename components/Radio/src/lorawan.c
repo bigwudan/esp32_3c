@@ -1029,15 +1029,15 @@ void lorawan_main( void )
             Radio.IrqProcess( ); // Process Radio IRQ
 #endif
         }
-        ESP_LOGI(TAG, "xxxxx[%s][%d]", __func__, __LINE__);
+
         // Processes the LoRaMac events
         LoRaMacProcess( );
-        ESP_LOGI(TAG, "xxxxx[%s][%d]", __func__, __LINE__);
+
         switch( DeviceState )
         {
             case DEVICE_STATE_RESTORE:
             {
-                ESP_LOGI(TAG, "xxxxx[%s][%d]", __func__, __LINE__);
+
                 // Try to restore from NVM and query the mac if possible.
                 if( 0  )
                 {
@@ -1045,7 +1045,7 @@ void lorawan_main( void )
                 }
                 else
                 {
-                    ESP_LOGI(TAG, "xxxxx[%s][%d]", __func__, __LINE__);
+
 #if( OVER_THE_AIR_ACTIVATION == 0 )
                     // Tell the MAC layer which network server version are we connecting too.
                     mibReq.Type = MIB_ABP_LORAWAN_VERSION;
@@ -1057,7 +1057,7 @@ void lorawan_main( void )
                     mibReq.Type = MIB_GEN_APP_KEY;
                     mibReq.Param.GenAppKey = GenAppKey;
                     LoRaMacMibSetRequestConfirm( &mibReq );
-                    ESP_LOGI(TAG, "xxxxx[%s][%d]", __func__, __LINE__);
+
 #else
                     mibReq.Type = MIB_APP_KEY;
                     mibReq.Param.AppKey = AppKey;
@@ -1067,7 +1067,7 @@ void lorawan_main( void )
                     mibReq.Type = MIB_NWK_KEY;
                     mibReq.Param.NwkKey = NwkKey;
                     LoRaMacMibSetRequestConfirm( &mibReq );
-                    ESP_LOGI(TAG, "xxxxx[%s][%d]", __func__, __LINE__);
+
                     // Initialize LoRaMac device unique ID if not already defined in Commissioning.h
                     if( ( devEui[0] == 0 ) && ( devEui[1] == 0 ) &&
                         ( devEui[2] == 0 ) && ( devEui[3] == 0 ) &&
@@ -1076,15 +1076,15 @@ void lorawan_main( void )
                     {
                         BoardGetUniqueId( devEui );
                     }
-                    ESP_LOGI(TAG, "xxxxx[%s][%d]", __func__, __LINE__);
+
                     mibReq.Type = MIB_DEV_EUI;
                     mibReq.Param.DevEui = devEui;
                     LoRaMacMibSetRequestConfirm( &mibReq );
-                    ESP_LOGI(TAG, "xxxxx[%s][%d]", __func__, __LINE__);
+
                     mibReq.Type = MIB_JOIN_EUI;
                     mibReq.Param.JoinEui = joinEui;
                     LoRaMacMibSetRequestConfirm( &mibReq );
-                    ESP_LOGI(TAG, "xxxxx[%s][%d]", __func__, __LINE__);
+ 
 #if( OVER_THE_AIR_ACTIVATION == 0 )
                     // Choose a random device address if not already defined in Commissioning.h
                     if( DevAddr == 0 )
@@ -1122,15 +1122,15 @@ void lorawan_main( void )
 #endif
                 }
                 DeviceState = DEVICE_STATE_START;
-                ESP_LOGI(TAG, "xxxxx[%s][%d]", __func__, __LINE__);
+ 
                 break;
             }
 
             case DEVICE_STATE_START:
             {
-                ESP_LOGI(TAG, "xxxxx[%s][%d]", __func__, __LINE__);
+
                 TimerInit( &TxNextPacketTimer, OnTxNextPacketTimerEvent );
-                ESP_LOGI(TAG, "xxxxx[%s][%d]", __func__, __LINE__);
+
                 // TimerInit( &Led1Timer, OnLed1TimerEvent );
                 // TimerSetValue( &Led1Timer, 25 );
 
@@ -1139,21 +1139,21 @@ void lorawan_main( void )
 
                 mibReq.Type = MIB_PUBLIC_NETWORK;
                 mibReq.Param.EnablePublicNetwork = LORAWAN_PUBLIC_NETWORK;
-                ESP_LOGI(TAG, "xxxxx[%s][%d]", __func__, __LINE__);
+
                 LoRaMacMibSetRequestConfirm( &mibReq );
-                ESP_LOGI(TAG, "xxxxx[%s][%d]", __func__, __LINE__);
+
                 mibReq.Type = MIB_ADR;
                 mibReq.Param.AdrEnable = LORAWAN_ADR_ON;
                 LoRaMacMibSetRequestConfirm( &mibReq );
-                ESP_LOGI(TAG, "xxxxx[%s][%d]", __func__, __LINE__);
+
 #if defined( REGION_EU868 ) || defined( REGION_RU864 ) || defined( REGION_CN779 ) || defined( REGION_EU433 )
                 LoRaMacTestSetDutyCycleOn( LORAWAN_DUTYCYCLE_ON );
-                ESP_LOGI(TAG, "xxxxx[%s][%d]", __func__, __LINE__);                
+           
 #endif
                 mibReq.Type = MIB_SYSTEM_MAX_RX_ERROR;
                 mibReq.Param.SystemMaxRxError = 20;
                 LoRaMacMibSetRequestConfirm( &mibReq );
-                ESP_LOGI(TAG, "xxxxx[%s][%d]", __func__, __LINE__);
+
                 LoRaMacStart( );
 
                 mibReq.Type = MIB_NETWORK_ACTIVATION;

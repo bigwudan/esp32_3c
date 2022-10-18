@@ -1003,11 +1003,9 @@ void RadioSetPublicNetwork( bool enable )
 {
     printf("xxxxx[%s][%d]\n", __func__, __LINE__);
     RadioPublicNetwork.Current = RadioPublicNetwork.Previous = enable;
-    printf("xxxxx[%s][%d]\n", __func__, __LINE__);
     RadioSetModem( MODEM_LORA );
     if( enable == true )
     {
-        printf("xxxxx[%s][%d]\n", __func__, __LINE__);
         // Change LoRa modem SyncWord
         SX126xWriteRegister( REG_LR_SYNCWORD, ( LORA_MAC_PUBLIC_SYNCWORD >> 8 ) & 0xFF );
         SX126xWriteRegister( REG_LR_SYNCWORD + 1, LORA_MAC_PUBLIC_SYNCWORD & 0xFF );
