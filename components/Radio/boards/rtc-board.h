@@ -191,4 +191,6 @@ void RtcProcess( void );
  */
 TimerTime_t RtcTempCompensation( TimerTime_t period, float temperature );
 
+void RTC_Alarm_IRQHandler( void );
+
 #endif // __RTC_BOARD_H__

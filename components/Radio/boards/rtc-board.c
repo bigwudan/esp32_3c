@@ -43,7 +43,7 @@
 #include "esp_timer.h"
 
 // MCU Wake Up Time
-#define MIN_ALARM_DELAY                             3 // in ticks
+#define MIN_ALARM_DELAY                             1 // in ticks
 
 // sub-second number of bits
 #define N_PREDIV_S                                  10
@@ -145,7 +145,7 @@ static void periodic_timer_callback(void* arg)
 
 static void oneshot_timer_callback(void* arg)
 {
-   
+   RTC_Alarm_IRQHandler();
 }
 
 static void _rtos_time_init(){
@@ -223,7 +223,10 @@ uint32_t RtcGetMinimumTimeout( void )
  */
 uint32_t RtcMs2Tick( uint32_t milliseconds )
 {
+#if 0    
     return ( uint32_t )( ( ( ( uint64_t )milliseconds ) * CONV_DENOM ) / CONV_NUMER );
+#endif
+    return     milliseconds;
 }
 
 /*!
@@ -281,6 +284,7 @@ void RtcStopAlarm( void )
 
 void RtcStartAlarm( uint32_t timeout )
 {
+    printf("xxxxRtcStartAlarm[%ld]\n",timeout*1000*1000 );
     esp_timer_start_once(oneshot_timer, timeout*1000*1000);
 }
 

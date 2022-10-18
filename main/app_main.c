@@ -112,11 +112,58 @@ static void _create_alaram_time(){
     }
 }
 
+#include "timer.h"
+static void testfunc_60( void* context ){
+    ESP_LOGI(TAG, "[60]xxxxxxxxOnAckTimeoutTimerEvent[%ld]", xTaskGetTickCount());
+    return ;
+}
+
+static void testfunc_30( void* context ){
+    ESP_LOGI(TAG, "[30]xxxxxxxxOnAckTimeoutTimerEvent[%ld]", xTaskGetTickCount());
+    return ;
+}
+
+static void testfunc_20( void* context ){
+    ESP_LOGI(TAG, "[20]xxxxxxxxOnAckTimeoutTimerEvent[%ld]", xTaskGetTickCount());
+    return ;
+}
+
+//开始测试
+static void _test(){
+extern void RtcInit( void );
+
+    RtcInit();
+    // TimerEvent_t obj_60;
+    // TimerInit( &obj_60, testfunc_60 );
+    // TimerSetValue( &obj_60, 60 );
+    // TimerStart( &obj_60 );
+
+
+    // TimerEvent_t obj_30;
+    // TimerInit( &obj_30, testfunc_30 );
+    // TimerSetValue( &obj_30, 30 );
+    // TimerStart( &obj_30 );
+
+
+    TimerEvent_t obj_20;
+    TimerInit( &obj_20, testfunc_20 );
+    TimerSetValue( &obj_20, 20 );
+    TimerStart( &obj_20 );
+
+    ESP_LOGI(TAG, "TimerStart[%ld]",xTaskGetTickCount());
+
+    while(1){
+
+       vTaskDelay(pdMS_TO_TICKS(50)); //延迟500ms
+
+    }    
+}
+
 
 void app_main(void)
 {
     //_create_alaram_time();
-
+    _test();
 #if 0    
     wifi_mod_start();
 
