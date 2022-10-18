@@ -351,12 +351,24 @@ TimerTime_t TimerGetCurrentTime( void )
 
 TimerTime_t TimerGetElapsedTime( TimerTime_t past )
 {
+#if 0    
     if ( past == 0 )
     {
         return 0;
     }
     uint32_t nowInTicks = RtcGetTimerValue( );
     uint32_t pastInTicks = RtcMs2Tick( past );
+
+    // Intentional wrap around. Works Ok if tick duration below 1ms
+    return RtcTick2Ms( nowInTicks - pastInTicks );
+#endif    
+
+    if ( past == 0 )
+    {
+        return 0;
+    }
+    uint32_t nowInTicks = RtcGetTimerValue( );
+    uint32_t pastInTicks =  past ;
 
     // Intentional wrap around. Works Ok if tick duration below 1ms
     return RtcTick2Ms( nowInTicks - pastInTicks );
@@ -377,7 +389,10 @@ static void TimerSetTimeout( TimerEvent_t *obj )
 
 TimerTime_t TimerTempCompensation( TimerTime_t period, float temperature )
 {
+#if 0    
     return RtcTempCompensation( period, temperature );
+#endif
+    return    period; 
 }
 
 void TimerProcess( void )

@@ -87,7 +87,7 @@ esp_err_t spi_driver_init(){
     io_conf.mode = GPIO_MODE_INPUT;
     io_conf.pin_bit_mask = (1ULL<<BUSY_IO);
     io_conf.pull_down_en = 0;
-    io_conf.pull_up_en = 0;
+    io_conf.pull_up_en = 1;
     gpio_config(&io_conf);
 
 #if 1

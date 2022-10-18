@@ -28,6 +28,8 @@
         "crc.h": "c",
         "utilities.h": "c",
         "board.h": "c",
-        "lora_app.h": "c"
+        "lora_app.h": "c",
+        "stm32l1xx_hal_rtc.h": "c",
+        "time.h": "c"
     }
 }
