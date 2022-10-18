@@ -129,6 +129,9 @@
 #include "radio.h"
 #include "LoRaMacTypes.h"
 
+
+
+#define REGION_EU868 1
 /*!
  * Maximum number of times the MAC layer tries to get an acknowledge.
  */

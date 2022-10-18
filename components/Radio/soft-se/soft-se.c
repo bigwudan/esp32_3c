@@ -254,14 +254,14 @@ SecureElementStatus_t SecureElementSetKey( KeyIdentifier_t keyID, uint8_t* key )
                 retval = SecureElementAesEncrypt( key, 16, MC_KE_KEY, decryptedKey );
 
                 memcpy1( SeNvmCtx.KeyList[i].KeyValue, decryptedKey, KEY_SIZE );
-                SeNvmCtxChanged( );
+                // SeNvmCtxChanged( );
 
                 return retval;
             }
             else
             {
                 memcpy1( SeNvmCtx.KeyList[i].KeyValue, key, KEY_SIZE );
-                SeNvmCtxChanged( );
+                // SeNvmCtxChanged( );
                 return SECURE_ELEMENT_SUCCESS;
             }
         }
@@ -391,7 +391,9 @@ SecureElementStatus_t SecureElementSetDevEui( uint8_t* devEui )
         return SECURE_ELEMENT_ERROR_NPE;
     }
     memcpy1( SeNvmCtx.DevEui, devEui, SE_EUI_SIZE );
-    SeNvmCtxChanged( );
+
+    // SeNvmCtxChanged( );
+   
     return SECURE_ELEMENT_SUCCESS;
 }
 
@@ -407,7 +409,7 @@ SecureElementStatus_t SecureElementSetJoinEui( uint8_t* joinEui )
         return SECURE_ELEMENT_ERROR_NPE;
     }
     memcpy1( SeNvmCtx.JoinEui, joinEui, SE_EUI_SIZE );
-    SeNvmCtxChanged( );
+    // SeNvmCtxChanged( );
     return SECURE_ELEMENT_SUCCESS;
 }
 

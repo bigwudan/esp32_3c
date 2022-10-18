@@ -3106,6 +3106,7 @@ LoRaMacStatus_t LoRaMacInitialization( LoRaMacPrimitives_t* primitives, LoRaMacC
     if( ( primitives == NULL ) ||
         ( callbacks == NULL ) )
     {
+        printf("1111111xxxxxx[%p][%s][%d]\n", &(MacCtx.NvmCtx), __func__, __LINE__);
         return LORAMAC_STATUS_PARAMETER_INVALID;
     }
 
@@ -3114,11 +3115,13 @@ LoRaMacStatus_t LoRaMacInitialization( LoRaMacPrimitives_t* primitives, LoRaMacC
         ( primitives->MacMlmeConfirm == NULL ) ||
         ( primitives->MacMlmeIndication == NULL ) )
     {
+        printf("1111111xxxxxx[%p][%s][%d]\n", &(MacCtx.NvmCtx), __func__, __LINE__);
         return LORAMAC_STATUS_PARAMETER_INVALID;
     }
     // Verify if the region is supported
     if( RegionIsActive( region ) == false )
     {
+        printf("1111111xxxxxx[%p][%s][%d]\n", &(MacCtx.NvmCtx), __func__, __LINE__);
         return LORAMAC_STATUS_REGION_NOT_SUPPORTED;
     }
 
@@ -3129,7 +3132,8 @@ LoRaMacStatus_t LoRaMacInitialization( LoRaMacPrimitives_t* primitives, LoRaMacC
     memset1( ( uint8_t* ) &NvmMacCtx, 0x00, sizeof( LoRaMacNvmCtx_t ) );
     memset1( ( uint8_t* ) &MacCtx, 0x00, sizeof( LoRaMacCtx_t ) );
     MacCtx.NvmCtx = &NvmMacCtx;
-
+    MacCtx.NvmCtx->PublicNetwork = true;
+    printf("1111111xxxxxx[%p][%s][%d]\n", &(MacCtx.NvmCtx), __func__, __LINE__);
     // Set non zero variables to its default value
     MacCtx.AckTimeoutRetriesCounter = 1;
     MacCtx.AckTimeoutRetries = 1;
@@ -3590,7 +3594,7 @@ LoRaMacStatus_t LoRaMacMibSetRequestConfirm( MibRequestConfirm_t* mibSet )
     LoRaMacStatus_t status = LORAMAC_STATUS_OK;
     ChanMaskSetParams_t chanMaskSet;
     VerifyParams_t verify;
-
+    printf("xxxx[%s][%d]\n", __func__, __LINE__);
     if( mibSet == NULL )
     {
         return LORAMAC_STATUS_PARAMETER_INVALID;
@@ -3599,7 +3603,7 @@ LoRaMacStatus_t LoRaMacMibSetRequestConfirm( MibRequestConfirm_t* mibSet )
     {
         return LORAMAC_STATUS_BUSY;
     }
-
+    printf("xxxx[%s][%d]\n", __func__, __LINE__);
     switch( mibSet->Type )
     {
         case MIB_DEVICE_CLASS:
@@ -3982,8 +3986,10 @@ LoRaMacStatus_t LoRaMacMibSetRequestConfirm( MibRequestConfirm_t* mibSet )
         }
         case MIB_PUBLIC_NETWORK:
         {
+            printf("xxxxx[%s][%d]\n", __func__, __LINE__);
             MacCtx.NvmCtx->PublicNetwork = mibSet->Param.EnablePublicNetwork;
             Radio.SetPublicNetwork( MacCtx.NvmCtx->PublicNetwork );
+            printf("xxxxx[%s][%d]\n", __func__, __LINE__);
             break;
         }
         case MIB_REPEATER_SUPPORT:
