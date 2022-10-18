@@ -997,7 +997,7 @@ void lorawan_main( void )
     uint8_t joinEui[] = LORAWAN_JOIN_EUI;
 
     lora_app_init();
-    //BoardInitMcu( );
+    BoardInitMcu( );
     // BoardInitPeriph( );
 
     macPrimitives.MacMcpsConfirm = McpsConfirm;

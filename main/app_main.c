@@ -128,11 +128,11 @@ static void testfunc_20( void* context ){
     return ;
 }
 
-//开始测试
+//开始测试    BoardInitMcu( );
 static void _test(){
-extern void RtcInit( void );
+extern void BoardInitMcu( void );
 
-    RtcInit();
+    BoardInitMcu();
 
 
 
@@ -166,8 +166,7 @@ extern void RtcInit( void );
 
 void app_main(void)
 {
-    //_create_alaram_time();
-    _test();
+
 #if 0    
     wifi_mod_start();
 

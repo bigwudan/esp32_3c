@@ -134,7 +134,6 @@ void TimerStart( TimerEvent_t *obj )
         }
         else
         {
-            printf("[%s][%d]\n", __func__, __LINE__);
             TimerInsertTimer( obj );
         }
     }
