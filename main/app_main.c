@@ -133,22 +133,26 @@ static void _test(){
 extern void RtcInit( void );
 
     RtcInit();
-    // TimerEvent_t obj_60;
-    // TimerInit( &obj_60, testfunc_60 );
-    // TimerSetValue( &obj_60, 60 );
-    // TimerStart( &obj_60 );
 
 
-    // TimerEvent_t obj_30;
-    // TimerInit( &obj_30, testfunc_30 );
-    // TimerSetValue( &obj_30, 30 );
-    // TimerStart( &obj_30 );
 
+    TimerEvent_t obj_30;
+    TimerInit( &obj_30, testfunc_30 );
+    TimerSetValue( &obj_30, 30 );
+    TimerStart( &obj_30 );
 
     TimerEvent_t obj_20;
     TimerInit( &obj_20, testfunc_20 );
-    TimerSetValue( &obj_20, 20 );
+    TimerSetValue( &obj_20, 10 );
     TimerStart( &obj_20 );
+
+    TimerEvent_t obj_60;
+    TimerInit( &obj_60, testfunc_60 );
+    TimerSetValue( &obj_60, 60 );
+    TimerStart( &obj_60 );
+
+
+    TimerForech();
 
     ESP_LOGI(TAG, "TimerStart[%ld]",xTaskGetTickCount());
 

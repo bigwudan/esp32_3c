@@ -145,4 +145,6 @@ TimerTime_t TimerTempCompensation( TimerTime_t period, float temperature );
  */
 void TimerProcess( void );
 
+void TimerForech(  );
+
 #endif // __TIMER_H__

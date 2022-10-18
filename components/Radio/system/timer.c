@@ -24,6 +24,7 @@
 #include "board.h"
 #include "rtc-board.h"
 #include "timer.h"
+#include "stdio.h"
 
 /*!
  * Safely execute call back
@@ -101,6 +102,7 @@ void TimerSetContext( TimerEvent_t *obj, void* context )
 
 void TimerStart( TimerEvent_t *obj )
 {
+
     uint32_t elapsedTime = 0;
 
     CRITICAL_SECTION_BEGIN( );
@@ -132,6 +134,7 @@ void TimerStart( TimerEvent_t *obj )
         }
         else
         {
+            printf("[%s][%d]\n", __func__, __LINE__);
             TimerInsertTimer( obj );
         }
     }
@@ -184,15 +187,17 @@ void TimerIrqHandler( void )
 {
     TimerEvent_t* cur;
     TimerEvent_t* next;
-
+#if 0
     uint32_t old =  RtcGetTimerContext( );
     uint32_t now =  RtcSetTimerContext( );
     uint32_t deltaContext = now - old; // intentional wrap around
-
+#endif
+    uint32_t deltaContext = 0;
     // Update timeStamp based upon new Time Reference
     // because delta context should never exceed 2^32
     if( TimerListHead != NULL )
     {
+        deltaContext = TimerListHead->Timestamp;
         for( cur = TimerListHead; cur->Next != NULL; cur = cur->Next )
         {
             next = cur->Next;
@@ -217,7 +222,7 @@ void TimerIrqHandler( void )
     }
 
     // Remove all the expired object from the list
-    while( ( TimerListHead != NULL ) && ( TimerListHead->Timestamp < RtcGetTimerElapsedTime( ) ) )
+    while( ( TimerListHead != NULL ) && ( TimerListHead->Timestamp <= RtcGetTimerElapsedTime( ) ) )
     {
         cur = TimerListHead;
         TimerListHead = TimerListHead->Next;
@@ -399,3 +404,17 @@ void TimerProcess( void )
 {
     RtcProcess( );
 }
+
+void TimerForech(  )
+{
+    TimerEvent_t* cur = TimerListHead;
+    uint32_t idx = 0;
+    printf("forecho:");
+    while( cur != NULL )
+    {
+        printf("cur[%ld][%ld]", idx++,cur->Timestamp);
+        cur = cur->Next;
+    }
+    printf("\n");
+}
+

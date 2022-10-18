@@ -284,7 +284,6 @@ void RtcStopAlarm( void )
 
 void RtcStartAlarm( uint32_t timeout )
 {
-    printf("xxxxRtcStartAlarm[%ld]\n",timeout*1000*1000 );
     esp_timer_start_once(oneshot_timer, timeout*1000*1000);
 }
 
@@ -300,12 +299,15 @@ uint32_t RtcGetTimerValue( void )
 
 uint32_t RtcGetTimerElapsedTime( void )
 {
+#if 0    
   RTC_TimeTypeDef time;
   RTC_DateTypeDef date;
   
   uint32_t calendarValue = ( uint32_t )RtcGetCalendarValue( &date, &time );
 
   return( ( uint32_t )( calendarValue - RtcTimerContext.Time ) );
+#endif
+    return 0;
 }
 
 void RtcSetMcuWakeUpTime( void )

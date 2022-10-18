@@ -31,6 +31,7 @@
         "lora_app.h": "c",
         "stm32l1xx_hal_rtc.h": "c",
         "time.h": "c",
-        "timer.h": "c"
+        "timer.h": "c",
+        "cstdio": "c"
     }
 }
