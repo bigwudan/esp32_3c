@@ -417,3 +417,39 @@ uint8_t* SecureElementGetJoinEui( void )
 {
     return SeNvmCtx.JoinEui;
 }
+
+
+SecureElementStatus_t SecureElementAesDecrypt( uint8_t* buffer, uint16_t size, KeyIdentifier_t keyID, uint8_t* encBuffer )
+{
+    if( buffer == NULL || encBuffer == NULL )
+    {
+        return SECURE_ELEMENT_ERROR_NPE;
+    }
+
+    // Check if the size is divisible by 16,
+    if( ( size % 16 ) != 0 )
+    {
+        return SECURE_ELEMENT_ERROR_BUF_SIZE;
+    }
+
+    memset1( SeNvmCtx.AesContext.ksch, '\0', 240 );
+
+    Key_t* pItem;
+    SecureElementStatus_t retval = GetKeyByID( keyID, &pItem );
+
+    if( retval == SECURE_ELEMENT_SUCCESS )
+    {
+        aes_set_key( pItem->KeyValue, 16, &SeNvmCtx.AesContext );
+
+        uint8_t block = 0;
+
+        while( size != 0 )
+        {
+            //aes_encrypt( &buffer[block], &encBuffer[block], &SeNvmCtx.AesContext );
+            aes_decrypt(&buffer[block], &encBuffer[block], &SeNvmCtx.AesContext);
+            block = block + 16;
+            size = size - 16;
+        }
+    }
+    return retval;
+}

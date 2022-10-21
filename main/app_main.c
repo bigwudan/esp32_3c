@@ -26,6 +26,9 @@
 
 #include <time.h>
 #include <sys/time.h>
+
+#include "lorawan_wg.h"
+
 static const char TAG[] = "app_main";
 
 
@@ -39,6 +42,7 @@ int show_time(void)
     // printf("Local time is: %s", asctime(area));
     // gmt = gmtime(&t);
     // printf("GMT is: %s", asctime(gmt));
+    lorawan_wg_init();
     return 0;
 }
 

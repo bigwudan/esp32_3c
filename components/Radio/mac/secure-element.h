@@ -202,6 +202,8 @@ SecureElementStatus_t SecureElementSetJoinEui( uint8_t* joinEui );
  */
 uint8_t* SecureElementGetJoinEui( void );
 
+SecureElementStatus_t SecureElementAesDecrypt( uint8_t* buffer, uint16_t size, KeyIdentifier_t keyID, uint8_t* encBuffer );
+
 /*! \} defgroup SECUREELEMENT */
 
 #endif //  __SECURE_ELEMENT_H__

@@ -322,6 +322,9 @@ typedef struct sLoRaMacMessage
     }Message;
 }LoRaMacMessage_t;
 
+
+
+
 /*! \} addtogroup LORAMAC */
 
 #endif // __LORAMAC_MESSAGE_TYPES_H__
