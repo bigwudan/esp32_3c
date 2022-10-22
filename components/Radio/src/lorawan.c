@@ -986,11 +986,40 @@ void BoardGetUniqueId( uint8_t *id )
 }
 
 
+
+
 static void _test_wg(){
+#if 0    
     LoRaMacMessageJoinRequest_t macMsg = {0};
     uint8_t test_buf[] = {0x00,0x08,0x07,0x06,0x05,0x04,0x03,0x02,0x01,0x00,0x00,0x01,0x76,0x00,0x00,0x00,0xBB,0xEE,0xAA,0x4D,0x70,0x86,0x6C};
     wg_LoRaMacCryptoVerifyJoinRequest(test_buf, sizeof(test_buf), &macMsg);
     return ;
+#endif
+    LoRaMacMessageJoinAccept_t macMsg = {0};
+
+    macMsg.Buffer = calloc(1, 512);
+    macMsg.MHDR.Value = 0x1;
+    (macMsg.JoinNonce)[0] = 0x11;
+    (macMsg.JoinNonce)[1] = 0x22;
+    (macMsg.JoinNonce)[2] = 0x33;
+
+
+    (macMsg.NetID)[0] = 0x01;
+    (macMsg.NetID)[1] = 0x02;
+    (macMsg.NetID)[2] = 0x03;
+
+    macMsg.DevAddr = 0x12345678;
+
+
+    macMsg.DLSettings.Value = 0x11;
+
+    macMsg.RxDelay = 0x22;
+
+    for(int i=0; i< 16; i++){
+        (macMsg.CFList)[i] = i+1;   
+
+    }
+    LoRaMacCryptoPrepareJoinAccept(&macMsg);
 }
 
 #if 1

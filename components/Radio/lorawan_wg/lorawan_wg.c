@@ -178,6 +178,9 @@ LoRaMacCryptoStatus_t LoRaMacCryptoPrepareJoinAccept(LoRaMacMessageJoinAccept_t*
     if(LoRaMacJoinAcceptToBuff(macMsg) != LORAMAC_PARSER_SUCCESS){
         return LORAMAC_CRYPTO_ERROR;
     }
+
+
+
     // Determine decryption key and DevNonce for key derivation
     encryptionKeyID = NWK_KEY;
     micComputationOffset = CRYPTO_MIC_COMPUTATION_OFFSET;
@@ -187,6 +190,18 @@ LoRaMacCryptoStatus_t LoRaMacCryptoPrepareJoinAccept(LoRaMacMessageJoinAccept_t*
         return LORAMAC_CRYPTO_ERROR;
     }
 
+    //add mic
+    // Serialize message
+    if( LoRaMacJoinAcceptToBuff( macMsg ) != LORAMAC_PARSER_SUCCESS )
+    {
+        return LORAMAC_CRYPTO_ERROR;
+    }
+    //test
+    printf("orig:");
+    for(int i=0; i<macMsg->BufSize; i++){
+        printf("[%02X]", macMsg->Buffer[i]);
+    }
+    printf("\n");
     // Decrypt header, skip MHDR
     uint8_t procBuffer[CRYPTO_MAXMESSAGE_SIZE + CRYPTO_MIC_COMPUTATION_OFFSET];
     memset1( procBuffer, 0, ( macMsg->BufSize + micComputationOffset ) ); 
@@ -197,9 +212,12 @@ LoRaMacCryptoStatus_t LoRaMacCryptoPrepareJoinAccept(LoRaMacMessageJoinAccept_t*
         return LORAMAC_CRYPTO_ERROR_SECURE_ELEMENT_FUNC;
     }
 
+    printf("buf:");
+    for(int i=0; i < macMsg->BufSize - LORAMAC_MHDR_FIELD_SIZE; i++){
 
-    
-
+        printf("[%02X]", procBuffer[i]);
+    }
+    printf("\n");
 
     return LORAMAC_CRYPTO_SUCCESS;
 }
@@ -215,65 +233,41 @@ LoRaMacParserStatus_t LoRaMacJoinAcceptToBuff( LoRaMacMessageJoinAccept_t* macMs
 
     uint16_t bufItr = 0;
 
-    //macMsg->MHDR.Value = macMsg->Buffer[bufItr++];
+   
     macMsg->Buffer[bufItr++] = macMsg->MHDR.Value;
 
-
-    //memcpy1( macMsg->JoinNonce, &macMsg->Buffer[bufItr], 3 );
     memcpy1( &macMsg->Buffer[bufItr], macMsg->JoinNonce, 3 );
-
     bufItr = bufItr + 3;
 
-    //memcpy1( macMsg->NetID, &macMsg->Buffer[bufItr], 3 );
+
     memcpy1( &macMsg->Buffer[bufItr], macMsg->NetID, 3 );
     bufItr = bufItr + 3;
 
-    // macMsg->DevAddr = ( uint32_t ) macMsg->Buffer[bufItr++];
-    // macMsg->DevAddr |= ( ( uint32_t ) macMsg->Buffer[bufItr++] << 8 );
-    // macMsg->DevAddr |= ( ( uint32_t ) macMsg->Buffer[bufItr++] << 16 );
-    // macMsg->DevAddr |= ( ( uint32_t ) macMsg->Buffer[bufItr++] << 24 );
-
-    macMsg->Buffer[bufItr++] = (uint8_t)(macMsg->DevAddr && 0xff);
-    macMsg->Buffer[bufItr++] = (uint8_t)((macMsg->DevAddr >> 8) && 0xff);
-    macMsg->Buffer[bufItr++] = (uint8_t)((macMsg->DevAddr >> 16) && 0xff);
-    macMsg->Buffer[bufItr++] = (uint8_t)((macMsg->DevAddr >> 24) && 0xff);
+    uint8_t t_num = 0;
+    
 
 
-    //macMsg->DLSettings.Value = macMsg->Buffer[bufItr++];
+    macMsg->Buffer[bufItr++] = (uint8_t)(macMsg->DevAddr & 0xff);
+    macMsg->Buffer[bufItr++] = (uint8_t)((macMsg->DevAddr >> 8) & 0xff);
+    macMsg->Buffer[bufItr++] = (uint8_t)((macMsg->DevAddr >> 16) & 0xff);
+    macMsg->Buffer[bufItr++] = (uint8_t)((macMsg->DevAddr >> 24) & 0xff);
 
     macMsg->Buffer[bufItr++] = macMsg->DLSettings.Value;
 
-    //macMsg->RxDelay = macMsg->Buffer[bufItr++];
-
     macMsg->Buffer[bufItr++] = macMsg->RxDelay;
 
-
-    // if( ( macMsg->BufSize - LORAMAC_MIC_FIELD_SIZE - bufItr ) == LORAMAC_C_FLIST_FIELD_SIZE )
-    // {
-    //     memcpy1( macMsg->CFList, &macMsg->Buffer[bufItr], LORAMAC_C_FLIST_FIELD_SIZE );
-    //     bufItr = bufItr + LORAMAC_C_FLIST_FIELD_SIZE;
-    // }
-    // else if( ( macMsg->BufSize - LORAMAC_MIC_FIELD_SIZE - bufItr ) > 0 )
-    // {
-    //     return LORAMAC_PARSER_FAIL;
-    // }
     if(macMsg->CFList[0]){
         memcpy1( &macMsg->Buffer[bufItr], macMsg->CFList,  LORAMAC_C_FLIST_FIELD_SIZE );
         bufItr = bufItr + LORAMAC_C_FLIST_FIELD_SIZE;
     }
 
 
+    macMsg->Buffer[bufItr++] = (uint8_t)(macMsg->MIC & 0xff);
+    macMsg->Buffer[bufItr++] = (uint8_t)((macMsg->MIC >> 8) & 0xff);
+    macMsg->Buffer[bufItr++] = (uint8_t)((macMsg->MIC >> 16) & 0xff);
+    macMsg->Buffer[bufItr++] = (uint8_t)((macMsg->MIC >> 24) & 0xff);
 
-    // macMsg->MIC = ( uint32_t ) macMsg->Buffer[bufItr++];
-    // macMsg->MIC |= ( ( uint32_t ) macMsg->Buffer[bufItr++] << 8 );
-    // macMsg->MIC |= ( ( uint32_t ) macMsg->Buffer[bufItr++] << 16 );
-    // macMsg->MIC |= ( ( uint32_t ) macMsg->Buffer[bufItr++] << 24 );
-
-    macMsg->Buffer[bufItr++] = (uint8_t)(macMsg->MIC && 0xff);
-    macMsg->Buffer[bufItr++] = (uint8_t)((macMsg->MIC >> 8) && 0xff);
-    macMsg->Buffer[bufItr++] = (uint8_t)((macMsg->MIC >> 16) && 0xff);
-    macMsg->Buffer[bufItr++] = (uint8_t)((macMsg->MIC >> 24) && 0xff);
-
+    macMsg->BufSize = bufItr;
 
     return LORAMAC_PARSER_SUCCESS;
 }
