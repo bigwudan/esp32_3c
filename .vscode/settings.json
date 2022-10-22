@@ -38,6 +38,7 @@
         "list": "c",
         "type_traits": "c",
         "xhash": "c",
-        "xtree": "c"
+        "xtree": "c",
+        "xmemory0": "c"
     }
 }

@@ -252,6 +252,8 @@ static KeyAddr_t KeyAddrList[NUM_OF_SEC_CTX] =
         { UNICAST_DEV_ADDR, APP_S_KEY, S_NWK_S_INT_KEY, NO_KEY }
     };
 
+static LoRaMacCryptoStatus_t wg_PayloadDecrypt( uint8_t* buffer, int16_t size, KeyIdentifier_t keyID, uint32_t address, uint8_t dir, uint32_t frameCounter );
+
 /*
  * Local functions
  */
@@ -1692,6 +1694,114 @@ LoRaMacCryptoStatus_t LoRaMacCryptoDeriveMcSessionKeyPair( AddressIdentifier_t a
     if( SecureElementDeriveAndStoreKey( CryptoCtx.NvmCtx->LrWanVersion, compBaseNwkS, curItem->RootKey, curItem->NwkSkey ) != SECURE_ELEMENT_SUCCESS )
     {
         return LORAMAC_CRYPTO_ERROR_SECURE_ELEMENT_FUNC;
+    }
+
+    return LORAMAC_CRYPTO_SUCCESS;
+}
+
+
+LoRaMacCryptoStatus_t wg_LoRaMacCryptoUnsecureMessage( AddressIdentifier_t addrID, uint32_t address, FCntIdentifier_t fCntID, uint32_t fCntDown, LoRaMacMessageData_t* macMsg )
+{
+    LoRaMacCryptoStatus_t retval = LORAMAC_CRYPTO_ERROR;
+    KeyIdentifier_t payloadDecryptionKeyID = APP_S_KEY;
+    KeyIdentifier_t micComputationKeyID = S_NWK_S_INT_KEY;
+    KeyAddr_t* curItem;
+    if( macMsg == 0 )
+    {
+        return LORAMAC_CRYPTO_ERROR_NPE;
+    }
+    // Parse the message
+    if( LoRaMacParserData( macMsg ) != LORAMAC_PARSER_SUCCESS )
+    {
+        return LORAMAC_CRYPTO_ERROR_PARSER;
+    }
+
+    // Determine current security context
+    retval = GetKeyAddrItem( addrID, &curItem );
+    if( retval != LORAMAC_CRYPTO_SUCCESS )
+    {
+        return retval;
+    }
+    // Compute mic
+    bool isAck = macMsg->FHDR.FCtrl.Bits.Ack;
+    payloadDecryptionKeyID = curItem->AppSkey;
+    micComputationKeyID = curItem->NwkSkey;
+
+    retval = VerifyCmacB0( macMsg->Buffer, ( macMsg->BufSize - LORAMAC_MIC_FIELD_SIZE ), micComputationKeyID, isAck, UPLINK, address, fCntDown, macMsg->MIC );
+
+    if( retval != LORAMAC_CRYPTO_SUCCESS )
+    {
+        return retval;
+    }
+
+    // Decrypt payload
+    if( macMsg->FPort == 0 )
+    {
+        // Use network session encryption key
+        payloadDecryptionKeyID = NWK_S_ENC_KEY;
+    }
+
+    retval = wg_PayloadDecrypt( macMsg->FRMPayload, macMsg->FRMPayloadSize, payloadDecryptionKeyID, address, UPLINK, fCntDown );
+    if( retval != LORAMAC_CRYPTO_SUCCESS )
+    {
+        return retval;
+    }
+
+    return LORAMAC_CRYPTO_SUCCESS;
+}
+
+/*
+ * Encrypts the payload
+ *
+ * \param[IN]  keyID            - Key identifier
+ * \param[IN]  address          - Address
+ * \param[IN]  dir              - Frame direction ( Uplink or Downlink )
+ * \param[IN]  frameCounter     - Frame counter
+ * \param[IN]  size             - Size of data
+ * \param[IN/OUT]  buffer       - Data buffer
+ * \retval                      - Status of the operation
+ */
+static LoRaMacCryptoStatus_t wg_PayloadDecrypt( uint8_t* buffer, int16_t size, KeyIdentifier_t keyID, uint32_t address, uint8_t dir, uint32_t frameCounter )
+{
+    if( buffer == 0 )
+    {
+        return LORAMAC_CRYPTO_ERROR_NPE;
+    }
+
+    uint8_t bufferIndex = 0;
+    uint16_t ctr = 1;
+    uint8_t sBlock[16] = { 0 };
+    uint8_t aBlock[16] = { 0 };
+
+    aBlock[0] = 0x01;
+
+    aBlock[5] = dir;
+
+    aBlock[6] = address & 0xFF;
+    aBlock[7] = ( address >> 8 ) & 0xFF;
+    aBlock[8] = ( address >> 16 ) & 0xFF;
+    aBlock[9] = ( address >> 24 ) & 0xFF;
+
+    aBlock[10] = frameCounter & 0xFF;
+    aBlock[11] = ( frameCounter >> 8 ) & 0xFF;
+    aBlock[12] = ( frameCounter >> 16 ) & 0xFF;
+    aBlock[13] = ( frameCounter >> 24 ) & 0xFF;
+
+    while( size > 0 )
+    {
+        aBlock[15] = ctr & 0xFF;
+        ctr++;
+        if( SecureElementAesDecrypt( aBlock, 16, keyID, sBlock ) != SECURE_ELEMENT_SUCCESS )
+        {
+            return LORAMAC_CRYPTO_ERROR_SECURE_ELEMENT_FUNC;
+        }
+
+        for( uint8_t i = 0; i < ( ( size > 16 ) ? 16 : size ); i++ )
+        {
+            buffer[bufferIndex + i] = buffer[bufferIndex + i] ^ sBlock[i];
+        }
+        size -= 16;
+        bufferIndex += 16;
     }
 
     return LORAMAC_CRYPTO_SUCCESS;

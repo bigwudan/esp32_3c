@@ -253,3 +253,28 @@ LoRaMacParserStatus_t LoRaMacJoinAcceptToBuff( LoRaMacMessageJoinAccept_t* macMs
 
     return LORAMAC_PARSER_SUCCESS;
 }
+
+
+/*
+网关解析接收到的上行数据
+**/
+LoRaMacParserStatus_t lorawan_wg_rev_data( LoRaMacMessageData_t*  macMsgData){
+    if(macMsgData == 0){
+        return LORAMAC_PARSER_FAIL;
+    }
+    uint32_t address = 0;
+
+    if( LORAMAC_PARSER_SUCCESS != LoRaMacParserData( macMsgData ) )
+    {
+        return LORAMAC_PARSER_FAIL;
+    }
+    uint32_t fCntDown = 1;
+
+    if(LORAMAC_CRYPTO_SUCCESS != wg_LoRaMacCryptoUnsecureMessage( MULTICAST_0_ADDR, address, FCNT_UP,  fCntDown, macMsgData ))
+    {
+        return LORAMAC_PARSER_FAIL;
+    }
+    
+
+    return LORAMAC_PARSER_SUCCESS;
+}
