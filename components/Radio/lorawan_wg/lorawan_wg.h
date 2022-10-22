@@ -136,8 +136,8 @@ LoRaMacParserStatus_t lorawan_wg_rev_data( LoRaMacMessageData_t*  macMsgData);
 
 LoRaMacCryptoStatus_t wg_LoRaMacCryptoVerifyJoinRequest(uint8_t* var_buf, uint32_t buf_size, LoRaMacMessageJoinRequest_t* macMsg);
 
+LoRaMacCryptoStatus_t LoRaMacCryptoPrepareJoinAccept(uint8_t *buf, uint32_t *size,LoRaMacMessageJoinAccept_t* macMsg);
 
-LoRaMacCryptoStatus_t LoRaMacCryptoPrepareJoinAccept(LoRaMacMessageJoinAccept_t* macMsg);
 
 #endif
 

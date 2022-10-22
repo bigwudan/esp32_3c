@@ -163,7 +163,7 @@ LoRaMacCryptoStatus_t LoRaMacCryptoVerifyJoinRequest(LoRaMacMessageJoinRequest_t
 ** 全局变量:
 ** 调用模块:
 *********************************************************************************************************/
-LoRaMacCryptoStatus_t LoRaMacCryptoPrepareJoinAccept(LoRaMacMessageJoinAccept_t* macMsg){
+LoRaMacCryptoStatus_t LoRaMacCryptoPrepareJoinAccept(uint8_t *buf, uint32_t *size,LoRaMacMessageJoinAccept_t* macMsg){
     if( ( macMsg == 0 ) )
     {
         return LORAMAC_CRYPTO_ERROR_NPE;
@@ -219,6 +219,9 @@ LoRaMacCryptoStatus_t LoRaMacCryptoPrepareJoinAccept(LoRaMacMessageJoinAccept_t*
     }
     printf("\n");
 
+    buf[0] = macMsg->MHDR.Value;
+    memcpy1(buf+1, procBuffer, macMsg->BufSize - LORAMAC_MHDR_FIELD_SIZE);
+    *size = macMsg->BufSize;
     return LORAMAC_CRYPTO_SUCCESS;
 }
 

@@ -1019,7 +1019,16 @@ static void _test_wg(){
         (macMsg.CFList)[i] = i+1;   
 
     }
-    LoRaMacCryptoPrepareJoinAccept(&macMsg);
+    uint32_t num = 0;
+    uint8_t t_buf[64] = {0};
+    LoRaMacCryptoPrepareJoinAccept(t_buf, &num, &macMsg);
+
+    printf("buf:");
+    for(int i=0; i< num; i++){
+        printf("[%02X]", t_buf[i]);
+
+    }
+    printf("\n");
 }
 
 #if 1
