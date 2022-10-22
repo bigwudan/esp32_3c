@@ -4709,3 +4709,53 @@ void LoRaMacTestSetDutyCycleOn( bool enable )
     }
 }
 
+LoRaMacStatus_t wg_LoRaMacMcpsRequest( McpsReq_t* mcpsRequest )
+{
+    GetPhyParams_t getPhy;
+    PhyParam_t phyParam;
+    LoRaMacStatus_t status = LORAMAC_STATUS_SERVICE_UNKNOWN;
+    LoRaMacHeader_t macHdr;
+    VerifyParams_t verify;
+    uint8_t fPort = 0;
+    void* fBuffer = 0;
+    uint16_t fBufferSize =0;
+    int8_t datarate = DR_0;
+    bool readyToSend = false;
+    LoRaMacFrameCtrl_t fCtrl;
+
+    switch( mcpsRequest->Type )
+    {
+        case MCPS_UNCONFIRMED:
+        {
+            readyToSend = true;
+            macHdr.Bits.MType = FRAME_TYPE_DATA_UNCONFIRMED_UP;
+            fPort = mcpsRequest->Req.Unconfirmed.fPort;
+            fBuffer = mcpsRequest->Req.Unconfirmed.fBuffer;
+            fBufferSize = mcpsRequest->Req.Unconfirmed.fBufferSize;
+            break;
+        }
+        case MCPS_CONFIRMED:
+        {
+            readyToSend = true;
+            macHdr.Bits.MType = FRAME_TYPE_DATA_CONFIRMED_UP;
+            fPort = mcpsRequest->Req.Confirmed.fPort;
+            fBuffer = mcpsRequest->Req.Confirmed.fBuffer;
+            fBufferSize = mcpsRequest->Req.Confirmed.fBufferSize;           
+            break;
+        }
+        case MCPS_PROPRIETARY:
+        {
+            readyToSend = true;
+            macHdr.Bits.MType = FRAME_TYPE_PROPRIETARY;
+            fBuffer = mcpsRequest->Req.Proprietary.fBuffer;
+            fBufferSize = mcpsRequest->Req.Proprietary.fBufferSize;
+            break;
+        }
+        default:
+            break;
+    }
+
+     // Prepare the frame
+    status = PrepareFrame( &macHdr, &fCtrl, fPort, fBuffer, fBufferSize );
+    return status;
+}

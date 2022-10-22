@@ -1806,3 +1806,97 @@ static LoRaMacCryptoStatus_t wg_PayloadDecrypt( uint8_t* buffer, int16_t size, K
 
     return LORAMAC_CRYPTO_SUCCESS;
 }
+
+LoRaMacCryptoStatus_t wg_LoRaMacCryptoSecureMessage( uint32_t fCntUp,LoRaMacMessageData_t* macMsg )
+{
+    LoRaMacCryptoStatus_t retval = LORAMAC_CRYPTO_ERROR;
+    KeyIdentifier_t payloadDecryptionKeyID = APP_S_KEY;
+
+    if( macMsg == NULL )
+    {
+        return LORAMAC_CRYPTO_ERROR_NPE;
+    }
+
+    if( fCntUp < CryptoCtx.NvmCtx->FCntList.FCntUp )
+    {
+        return LORAMAC_CRYPTO_FAIL_FCNT_SMALLER;
+    }
+
+    // Encrypt payload
+    if( macMsg->FPort == 0 )
+    {
+        // Use network session key
+        payloadDecryptionKeyID = NWK_S_ENC_KEY;
+    }
+
+    if( fCntUp > CryptoCtx.NvmCtx->FCntList.FCntUp )
+    {
+        retval = wg_PayloadDecrypt( macMsg->FRMPayload, macMsg->FRMPayloadSize, payloadDecryptionKeyID, macMsg->FHDR.DevAddr, DOWNLINK, fCntUp );
+        if( retval != LORAMAC_CRYPTO_SUCCESS )
+        {
+            return retval;
+        }
+
+#if( USE_LRWAN_1_1_X_CRYPTO == 1 )
+        if( CryptoCtx.NvmCtx->LrWanVersion.Fields.Minor == 1 )
+        {
+            // Encrypt FOpts
+            retval = FOptsEncrypt( macMsg->FHDR.FCtrl.Bits.FOptsLen, macMsg->FHDR.DevAddr, UPLINK, FCNT_UP, fCntUp, macMsg->FHDR.FOpts );
+            if( retval != LORAMAC_CRYPTO_SUCCESS )
+            {
+                return retval;
+            }
+        }
+#endif
+    }
+    CryptoCtx.NvmCtx->FCntList.FCntUp = fCntUp;
+
+
+    // Serialize message
+    if( LoRaMacSerializerData( macMsg ) != LORAMAC_SERIALIZER_SUCCESS )
+    {
+        return LORAMAC_CRYPTO_ERROR_SERIALIZER;
+    }
+
+    // Compute mic
+#if( USE_LRWAN_1_1_X_CRYPTO == 1 )
+    if( CryptoCtx.NvmCtx->LrWanVersion.Fields.Minor == 1 )
+    {
+        uint32_t cmacS = 0;
+        uint32_t cmacF = 0;
+
+        // cmacS  = aes128_cmac(SNwkSIntKey, B1 | msg)
+        retval = ComputeCmacB1( macMsg->Buffer, ( macMsg->BufSize - LORAMAC_MIC_FIELD_SIZE ), S_NWK_S_INT_KEY, macMsg->FHDR.FCtrl.Bits.Ack, txDr, txCh, macMsg->FHDR.DevAddr, fCntUp, &cmacS );
+        if( retval != LORAMAC_CRYPTO_SUCCESS )
+        {
+            return retval;
+        }
+        //cmacF = aes128_cmac(FNwkSIntKey, B0 | msg)
+        retval = ComputeCmacB0( macMsg->Buffer, ( macMsg->BufSize - LORAMAC_MIC_FIELD_SIZE ), F_NWK_S_INT_KEY, macMsg->FHDR.FCtrl.Bits.Ack, UPLINK, macMsg->FHDR.DevAddr, fCntUp, &cmacF );
+        if( retval != LORAMAC_CRYPTO_SUCCESS )
+        {
+            return retval;
+        }
+        // MIC = cmacS[0..1] | cmacF[0..1]
+        macMsg->MIC = ( ( cmacF << 16 ) & 0xFFFF0000 ) | ( cmacS & 0x0000FFFF );
+    }
+    else
+#endif
+    {
+        // MIC = cmacF[0..3]
+        // The IsAck parameter is every time false since the ConfFCnt field is not used in legacy mode.
+        retval = ComputeCmacB0( macMsg->Buffer, ( macMsg->BufSize - LORAMAC_MIC_FIELD_SIZE ), NWK_S_ENC_KEY, false, UPLINK, macMsg->FHDR.DevAddr, fCntUp, &macMsg->MIC );
+        if( retval != LORAMAC_CRYPTO_SUCCESS )
+        {
+            return retval;
+        }
+    }
+
+    // Re-serialize message to add the MIC
+    if( LoRaMacSerializerData( macMsg ) != LORAMAC_SERIALIZER_SUCCESS )
+    {
+        return LORAMAC_CRYPTO_ERROR_SERIALIZER;
+    }
+
+    return LORAMAC_CRYPTO_SUCCESS;
+}

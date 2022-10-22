@@ -14,6 +14,8 @@
 
 #include "LoRaMacParser.h"
 
+
+#include "LoRaMac.h"
 /*!
  * LoRaWAN Frame counter list.
  */
@@ -125,5 +127,11 @@ LoRaMacCryptoStatus_t LoRaMacCryptoVerifyJoinRequest(LoRaMacMessageJoinRequest_t
 
 LoRaMacParserStatus_t LoRaMacJoinAcceptToBuff( LoRaMacMessageJoinAccept_t* macMsg );
 
+
+
+/*
+网关解析接收到的上行数据
+**/
+LoRaMacParserStatus_t lorawan_wg_rev_data( LoRaMacMessageData_t*  macMsgData);
 #endif
 
