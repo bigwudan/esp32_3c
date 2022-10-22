@@ -49,7 +49,7 @@
 /*!
  * Indicates if a random devnonce must be used or not
  */
-#define USE_RANDOM_DEV_NONCE                        1
+#define USE_RANDOM_DEV_NONCE                        0
 
 /*
  * Initial value of the frame counters
@@ -1112,7 +1112,7 @@ LoRaMacCryptoStatus_t LoRaMacCryptoPrepareJoinRequest( LoRaMacMessageJoinRequest
     SecureElementRandomNumber( &devNonce );
     CryptoCtx.NvmCtx->DevNonce = devNonce;
 #else
-    CryptoCtx.NvmCtx->DevNonce++;
+    CryptoCtx.NvmCtx->DevNonce= 0xAAEE;
 #endif
     CryptoCtx.EventCryptoNvmCtxChanged( );
     macMsg->DevNonce = CryptoCtx.NvmCtx->DevNonce;

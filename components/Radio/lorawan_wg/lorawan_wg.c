@@ -88,7 +88,31 @@ void lorawan_wg_init(){
     return ;
 }
 
+LoRaMacCryptoStatus_t wg_LoRaMacCryptoVerifyJoinRequest(uint8_t* var_buf, uint32_t buf_size, LoRaMacMessageJoinRequest_t* macMsg){
+    KeyIdentifier_t micComputationKeyID = NWK_KEY;
+    uint32_t mic = 0;
+    uint32_t idx = 0;
+    // Compute mic
+    if( SecureElementComputeAesCmac( NULL, var_buf, ( LORAMAC_JOIN_REQ_MSG_SIZE - LORAMAC_MIC_FIELD_SIZE ), micComputationKeyID, &mic ) != SECURE_ELEMENT_SUCCESS )
+    {
+        return LORAMAC_CRYPTO_ERROR_SECURE_ELEMENT_FUNC;
+    }
+ 
+    if((uint32_t)((var_buf[19]) | (var_buf[20] << 8) |(var_buf[21] << 16) | (var_buf[22] << 24)) != mic){
+        return LORAMAC_CRYPTO_ERROR;
+    }
+   
+    macMsg->MHDR.Value = var_buf[0];
+    idx +=1;
+    memcpyr(macMsg->JoinEUI, var_buf+idx, 8);
 
+    idx +=8;
+    memcpyr(macMsg->DevEUI, var_buf+idx, 8);
+
+    idx +=8;
+    macMsg->DevNonce = (uint16_t)((var_buf[idx]) | (var_buf[idx+1] << 8));
+    return LORAMAC_CRYPTO_SUCCESS;    
+}
 
 
 /*********************************************************************************************************

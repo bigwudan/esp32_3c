@@ -47,11 +47,13 @@
 #include "LoRaMac.h"
 #include "Commissioning.h"
 
+#include "lorawan_wg.h"
+
 
 static const char TAG[] = "lorawan";
-static uint32_t _id1_num = 0x111; 
-static uint32_t _id2_num = 0x222; 
-static uint32_t _id3_num = 0x33; 
+static uint32_t _id1_num = 0xaa; 
+static uint32_t _id2_num = 0xbb; 
+static uint32_t _id3_num = 0xcc; 
 /*!
  * Unique Devices IDs register set ( STM32L152x )
  */
@@ -983,6 +985,14 @@ void BoardGetUniqueId( uint8_t *id )
     id[0] = ( ( *( uint32_t* )ID2 ) );
 }
 
+
+static void _test_wg(){
+    LoRaMacMessageJoinRequest_t macMsg = {0};
+    uint8_t test_buf[] = {0x00,0x08,0x07,0x06,0x05,0x04,0x03,0x02,0x01,0x00,0x00,0x01,0x76,0x00,0x00,0x00,0xBB,0xEE,0xAA,0x4D,0x70,0x86,0x6C};
+    wg_LoRaMacCryptoVerifyJoinRequest(test_buf, sizeof(test_buf), &macMsg);
+    return ;
+}
+
 #if 1
 /**
  * Main application entry point.
@@ -1014,6 +1024,8 @@ void lorawan_main( void )
     DeviceState = DEVICE_STATE_RESTORE;
 
     printf( "###### ===== ClassA demo application v1.0.RC1 ==== ######\r\n\r\n" );
+    
+
 
     while( 1 )
     {
@@ -1122,7 +1134,8 @@ void lorawan_main( void )
 #endif
                 }
                 DeviceState = DEVICE_STATE_START;
- 
+                _test_wg();
+                while(1);
                 break;
             }
 
