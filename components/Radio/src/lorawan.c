@@ -1029,6 +1029,15 @@ static void _test_wg(){
 
     }
     printf("\n");
+
+    LoRaMacCryptoStatus_t macCryptoStatus;
+
+    LoRaMacMessageJoinAccept_t macMsgJoinAccept;
+    macMsgJoinAccept.Buffer = t_buf;
+    macMsgJoinAccept.BufSize = num;  
+    macCryptoStatus = LoRaMacCryptoHandleJoinAccept( JOIN_REQ, SecureElementGetJoinEui( ), &macMsgJoinAccept );
+    printf("xxxxx[%d]\n", macCryptoStatus);
+    while(1);
 }
 
 #if 1

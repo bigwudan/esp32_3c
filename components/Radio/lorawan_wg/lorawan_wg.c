@@ -212,12 +212,12 @@ LoRaMacCryptoStatus_t LoRaMacCryptoPrepareJoinAccept(uint8_t *buf, uint32_t *siz
         return LORAMAC_CRYPTO_ERROR_SECURE_ELEMENT_FUNC;
     }
 
-    printf("buf:");
-    for(int i=0; i < macMsg->BufSize - LORAMAC_MHDR_FIELD_SIZE; i++){
+    // printf("buf:");
+    // for(int i=0; i < macMsg->BufSize - LORAMAC_MHDR_FIELD_SIZE; i++){
 
-        printf("[%02X]", procBuffer[i]);
-    }
-    printf("\n");
+    //     printf("[%02X]", procBuffer[i]);
+    // }
+    // printf("\n");
 
     buf[0] = macMsg->MHDR.Value;
     memcpy1(buf+1, procBuffer, macMsg->BufSize - LORAMAC_MHDR_FIELD_SIZE);

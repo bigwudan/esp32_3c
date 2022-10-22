@@ -33,7 +33,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <stdint.h>
-
+#include <stdio.h>
 #include "utilities.h"
 #include "secure-element.h"
 
@@ -1268,10 +1268,15 @@ LoRaMacCryptoStatus_t LoRaMacCryptoHandleJoinAccept( JoinReqIdentifier_t joinReq
     uint8_t procBuffer[CRYPTO_MAXMESSAGE_SIZE + CRYPTO_MIC_COMPUTATION_OFFSET];
     memset1( procBuffer, 0, ( macMsg->BufSize + micComputationOffset ) );
 
+
+
     if( SecureElementAesEncrypt( macMsg->Buffer + LORAMAC_MHDR_FIELD_SIZE, ( macMsg->BufSize - LORAMAC_MHDR_FIELD_SIZE ), encryptionKeyID, ( procBuffer + micComputationOffset ) ) != SECURE_ELEMENT_SUCCESS )
     {
         return LORAMAC_CRYPTO_ERROR_SECURE_ELEMENT_FUNC;
     }
+
+
+
     // Copy the result to an offset location to keep space for additional information which have to be added in case of 1.1 and later
     memcpy1( macMsg->Buffer + LORAMAC_MHDR_FIELD_SIZE, ( procBuffer + micComputationOffset ), ( macMsg->BufSize - LORAMAC_MHDR_FIELD_SIZE ) );
 
@@ -1294,7 +1299,7 @@ LoRaMacCryptoStatus_t LoRaMacCryptoHandleJoinAccept( JoinReqIdentifier_t joinReq
     }
 
     // Verify mic
-    if( CryptoCtx.NvmCtx->LrWanVersion.Fields.Minor == 0 )
+    if( 1 || CryptoCtx.NvmCtx->LrWanVersion.Fields.Minor == 0 )
     {
         // For legacy mode :
         //   cmac = aes128_cmac(NwkKey, MHDR |  JoinNonce | NetID | DevAddr | DLSettings | RxDelay | CFList | CFListType)
