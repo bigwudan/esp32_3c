@@ -291,6 +291,7 @@ SecureElementStatus_t SecureElementVerifyAesCmac( uint8_t* buffer, uint16_t size
     SecureElementStatus_t retval = SECURE_ELEMENT_ERROR;
     uint32_t compCmac = 0;
     retval = ComputeCmac( NULL, buffer, size, keyID, &compCmac );
+
     if( retval != SECURE_ELEMENT_SUCCESS )
     {
         return retval;
@@ -308,14 +309,12 @@ SecureElementStatus_t SecureElementAesEncrypt( uint8_t* buffer, uint16_t size, K
 {
     if( buffer == NULL || encBuffer == NULL )
     {
-        printf("xxxx[%s][%d]\n", __func__, __LINE__);
         return SECURE_ELEMENT_ERROR_NPE;
     }
 
     // Check if the size is divisible by 16,
     if( ( size % 16 ) != 0 )
     {
-        printf("xxxx[%s][%d]\n", __func__, __LINE__);
         return SECURE_ELEMENT_ERROR_BUF_SIZE;
     }
 
@@ -326,11 +325,8 @@ SecureElementStatus_t SecureElementAesEncrypt( uint8_t* buffer, uint16_t size, K
 
     if( retval == SECURE_ELEMENT_SUCCESS )
     {
-        printf("xxxx[%s][%d]\n", __func__, __LINE__);
         aes_set_key( pItem->KeyValue, 16, &SeNvmCtx.AesContext );
-
         uint8_t block = 0;
-
         while( size != 0 )
         {
             aes_encrypt( &buffer[block], &encBuffer[block], &SeNvmCtx.AesContext );

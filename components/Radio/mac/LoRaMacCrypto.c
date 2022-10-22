@@ -1280,14 +1280,55 @@ LoRaMacCryptoStatus_t LoRaMacCryptoHandleJoinAccept( JoinReqIdentifier_t joinReq
     // Copy the result to an offset location to keep space for additional information which have to be added in case of 1.1 and later
     memcpy1( macMsg->Buffer + LORAMAC_MHDR_FIELD_SIZE, ( procBuffer + micComputationOffset ), ( macMsg->BufSize - LORAMAC_MHDR_FIELD_SIZE ) );
 
+    // printf("11sx:");
+    // for(int i=0; i< (macMsg->BufSize - LORAMAC_MHDR_FIELD_SIZE); i++){
+
+    //     printf("[%02X]", *(macMsg->Buffer + LORAMAC_MHDR_FIELD_SIZE +i));
+    // }
+    // printf("\n");
+
     // Parse the message
     if( LoRaMacParserJoinAccept( macMsg ) != LORAMAC_PARSER_SUCCESS )
     {
         return LORAMAC_CRYPTO_ERROR_PARSER;
     }
 
+#if 0
+    //MHDR
+    printf("va[%d]\n", macMsg->MHDR.Value);
+    //JoinNonce
+    printf("join:");
+    for(int i=0; i <3; i++){
+        printf("[%02X]", macMsg->JoinNonce[i]);
+
+    }
+    printf("\n");
+
+    //NetID
+    printf("NetID:");
+    for(int i=0; i <3; i++){
+        printf("[%02X]", macMsg->NetID[i]);
+
+    }
+    printf("\n");
+
+    printf("DevAddr[%02lX]\n", macMsg->DevAddr);
+
+    printf("DLSettings.Value[%02X]\n", macMsg->DLSettings.Value);
+
+    printf("RxDelay[%02X]\n", macMsg->RxDelay);
+
+    //LORAMAC_C_FLIST_FIELD_SIZE
+    printf("flist:");
+    for(int i=0; i<LORAMAC_C_FLIST_FIELD_SIZE ; i++){
+        printf("[%2X]", macMsg->CFList[i]);
+
+    }
+    printf("\n");
+    printf("MIC[%02lX]\n",macMsg->MIC);
+#endif
     // Is it a LoRaWAN 1.1.0 or later ?
-    if( macMsg->DLSettings.Bits.OptNeg == 1 )
+    if( 0 && macMsg->DLSettings.Bits.OptNeg == 1 )
     {
         CryptoCtx.NvmCtx->LrWanVersion.Fields.Minor = 1;
         micComputationKeyID = J_S_INT_KEY;
@@ -1301,6 +1342,7 @@ LoRaMacCryptoStatus_t LoRaMacCryptoHandleJoinAccept( JoinReqIdentifier_t joinReq
     // Verify mic
     if( 1 || CryptoCtx.NvmCtx->LrWanVersion.Fields.Minor == 0 )
     {
+
         // For legacy mode :
         //   cmac = aes128_cmac(NwkKey, MHDR |  JoinNonce | NetID | DevAddr | DLSettings | RxDelay | CFList | CFListType)
         if( SecureElementVerifyAesCmac( macMsg->Buffer, ( macMsg->BufSize - LORAMAC_MIC_FIELD_SIZE ), macMsg->MIC, micComputationKeyID ) != SECURE_ELEMENT_SUCCESS )

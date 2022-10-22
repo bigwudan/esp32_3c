@@ -185,7 +185,7 @@ LoRaMacCryptoStatus_t LoRaMacCryptoPrepareJoinAccept(uint8_t *buf, uint32_t *siz
     encryptionKeyID = NWK_KEY;
     micComputationOffset = CRYPTO_MIC_COMPUTATION_OFFSET;
 
-    if( SecureElementComputeAesCmac( NULL, macMsg->Buffer , macMsg->BufSize, encryptionKeyID, &(macMsg->MIC) )!= SECURE_ELEMENT_SUCCESS)
+    if( SecureElementComputeAesCmac( NULL, macMsg->Buffer , macMsg->BufSize-4, encryptionKeyID, &(macMsg->MIC) )!= SECURE_ELEMENT_SUCCESS)
     {
         return LORAMAC_CRYPTO_ERROR;
     }
@@ -196,12 +196,7 @@ LoRaMacCryptoStatus_t LoRaMacCryptoPrepareJoinAccept(uint8_t *buf, uint32_t *siz
     {
         return LORAMAC_CRYPTO_ERROR;
     }
-    //test
-    printf("orig:");
-    for(int i=0; i<macMsg->BufSize; i++){
-        printf("[%02X]", macMsg->Buffer[i]);
-    }
-    printf("\n");
+
     // Decrypt header, skip MHDR
     uint8_t procBuffer[CRYPTO_MAXMESSAGE_SIZE + CRYPTO_MIC_COMPUTATION_OFFSET];
     memset1( procBuffer, 0, ( macMsg->BufSize + micComputationOffset ) ); 

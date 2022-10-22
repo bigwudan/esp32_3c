@@ -1023,12 +1023,12 @@ static void _test_wg(){
     uint8_t t_buf[64] = {0};
     LoRaMacCryptoPrepareJoinAccept(t_buf, &num, &macMsg);
 
-    printf("buf:");
-    for(int i=0; i< num; i++){
-        printf("[%02X]", t_buf[i]);
+    // printf("buf:");
+    // for(int i=0; i< num; i++){
+    //     printf("[%02X]", t_buf[i]);
 
-    }
-    printf("\n");
+    // }
+    // printf("\n");
 
     LoRaMacCryptoStatus_t macCryptoStatus;
 
