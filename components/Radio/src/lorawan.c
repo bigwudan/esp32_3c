@@ -1098,6 +1098,41 @@ static void _test_wg(){
     }
 
     printf("\n");
+
+
+    LoRaMacMessageData_t macMsg_1 = {0};
+    uint8_t tt_buf[] = {0x11,0x56,0x34,0x12,0x00,0x12,0x01,0x00,0x11,0x22,0x22,0x1C,0xC5,0x21,0x80,0x29,0x9E,0xF9};
+
+    macMsg_1.Buffer = tt_buf;
+    macMsg_1.BufSize = sizeof(tt_buf);
+    macMsg_1.FRMPayload = calloc(1, 0xff);
+    macMsg_1.FRMPayloadSize = 0xff;
+    
+
+    LoRaMacCryptoStatus_t macCryptoStatus = LORAMAC_CRYPTO_ERROR;
+    macCryptoStatus = LoRaMacCryptoUnsecureMessage( UNICAST_DEV_ADDR, macMsg.FHDR.DevAddr, FCNT_DOWN, macMsg.FHDR.FCnt, &macMsg_1 );
+    if( macCryptoStatus != LORAMAC_CRYPTO_SUCCESS )
+    {
+
+        printf("[%s][%d][%d]\n", __func__, __LINE__,macCryptoStatus);
+    }
+
+    printf("MHDR.Value[%02X]\n", macMsg_1.MHDR.Value);
+    printf("FHDR.DevAddr[%02lX]\n", macMsg_1.FHDR.DevAddr);
+    printf("FHDR.FCtrl.Value[%02X]\n", macMsg_1.FHDR.FCtrl.Value);
+    printf("FHDR.FCnt[%02X]\n", macMsg_1.FHDR.FCnt);    
+
+    printf("FHDR.FOpts[%02X][%02X]\n", macMsg_1.FHDR.FOpts[0], macMsg_1.FHDR.FOpts[1]);  
+    printf("FPort[%02X]\n", macMsg_1.FPort);
+   
+    printf("pay:");
+    for(int i=0; i< macMsg_1.FRMPayloadSize; i++){
+
+        printf("[%02X]",macMsg_1.FRMPayload[i] );
+    }
+    printf("\n");
+
+    printf("[%s][%d]\n", __func__, __LINE__);
     while(1);
 }
 

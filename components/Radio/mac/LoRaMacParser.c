@@ -20,6 +20,7 @@ Maintainer: Miguel Luis ( Semtech ), Gregory Cristian ( Semtech ),
 */
 #include "LoRaMacParser.h"
 #include "utilities.h"
+#include "stdio.h"
 
 LoRaMacParserStatus_t LoRaMacParserJoinAccept( LoRaMacMessageJoinAccept_t* macMsg )
 {

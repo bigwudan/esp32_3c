@@ -1605,10 +1605,10 @@ LoRaMacCryptoStatus_t LoRaMacCryptoUnsecureMessage( AddressIdentifier_t addrID, 
         return LORAMAC_CRYPTO_ERROR_NPE;
     }
 
-    if( CheckFCntDown( fCntID, fCntDown ) == false )
-    {
-        return LORAMAC_CRYPTO_FAIL_FCNT_SMALLER;
-    }
+    // if( CheckFCntDown( fCntID, fCntDown ) == false )
+    // {
+    //     return LORAMAC_CRYPTO_FAIL_FCNT_SMALLER;
+    // }
 
     LoRaMacCryptoStatus_t retval = LORAMAC_CRYPTO_ERROR;
     KeyIdentifier_t payloadDecryptionKeyID = APP_S_KEY;
@@ -1659,6 +1659,7 @@ LoRaMacCryptoStatus_t LoRaMacCryptoUnsecureMessage( AddressIdentifier_t addrID, 
         payloadDecryptionKeyID = NWK_S_ENC_KEY;
     }
     retval = PayloadEncrypt( macMsg->FRMPayload, macMsg->FRMPayloadSize, payloadDecryptionKeyID, address, DOWNLINK, fCntDown );
+    
     if( retval != LORAMAC_CRYPTO_SUCCESS )
     {
         return retval;
