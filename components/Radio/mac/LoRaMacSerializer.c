@@ -18,6 +18,7 @@ License: Revised BSD License, see LICENSE.TXT file include in the project
 Maintainer: Miguel Luis ( Semtech ), Gregory Cristian ( Semtech ),
             Daniel Jaeckle ( STACKFORCE ),  Johannes Bruder ( STACKFORCE )
 */
+#include "stdio.h"
 #include "LoRaMacSerializer.h"
 #include "utilities.h"
 
@@ -123,6 +124,7 @@ LoRaMacSerializerStatus_t LoRaMacSerializerData( LoRaMacMessageData_t* macMsg )
 {
     if( ( macMsg == 0 ) || ( macMsg->Buffer == 0 ) )
     {
+
         return LORAMAC_SERIALIZER_ERROR_NPE;
     }
 
@@ -146,6 +148,7 @@ LoRaMacSerializerStatus_t LoRaMacSerializerData( LoRaMacMessageData_t* macMsg )
 
     if( macMsg->BufSize < computedBufSize )
     {
+
         return LORAMAC_SERIALIZER_ERROR_BUF_SIZE;
     }
 

@@ -2043,3 +2043,116 @@ LoRaMacCryptoStatus_t wg_LoRaMacCryptoSecureMessage( uint32_t fCntUp,LoRaMacMess
 
     return LORAMAC_CRYPTO_SUCCESS;
 }
+
+
+//下发指令到终端设备
+LoRaMacParserStatus_t lorawan_wg_send_data( LoRaMacMessageData_t* macMsg){
+
+    AddressIdentifier_t addrID = UNICAST_DEV_ADDR;
+    FCntIdentifier_t fCntID = 0; 
+    uint32_t fCntDown = macMsg->FHDR.FCnt;
+    uint32_t address =  macMsg->FHDR.DevAddr;
+    if( macMsg == 0 )
+    {
+        return LORAMAC_CRYPTO_ERROR_NPE;
+    }
+
+    // if( CheckFCntDown( fCntID, fCntDown ) == false )
+    // {
+    //     return LORAMAC_CRYPTO_FAIL_FCNT_SMALLER;
+    // }
+
+    LoRaMacCryptoStatus_t retval = LORAMAC_CRYPTO_ERROR;
+    KeyIdentifier_t payloadDecryptionKeyID = APP_S_KEY;
+    KeyIdentifier_t micComputationKeyID = S_NWK_S_INT_KEY;
+    KeyAddr_t* curItem;
+    // Serialize message
+
+
+
+    // Determine current security context
+    retval = GetKeyAddrItem( addrID, &curItem );
+    if( retval != LORAMAC_CRYPTO_SUCCESS )
+    {
+        printf("[%s][%d]\n", __func__, __LINE__);
+        return retval;
+    }
+
+    payloadDecryptionKeyID = curItem->AppSkey;
+    micComputationKeyID = curItem->NwkSkey;
+
+    // Check if it is our address
+    if( address != macMsg->FHDR.DevAddr )
+    {
+        printf("[%s][%d]\n", __func__, __LINE__);        
+        return LORAMAC_CRYPTO_FAIL_ADDRESS;
+    }
+
+    // Compute mic
+    bool isAck = macMsg->FHDR.FCtrl.Bits.Ack;
+    // Decrypt payload
+    if( macMsg->FPort == 0 )
+    {
+        // Use network session encryption key
+        payloadDecryptionKeyID = NWK_S_ENC_KEY;
+    }
+
+    printf("11re:");
+    for(int i=0; i<macMsg->FRMPayloadSize; i++ ){
+        printf("[%02X]",macMsg->FRMPayload[i] );
+        
+    }
+    printf("\n");
+
+    retval = PayloadEncrypt( macMsg->FRMPayload, macMsg->FRMPayloadSize, payloadDecryptionKeyID, address, DOWNLINK, fCntDown );
+    if( retval != LORAMAC_CRYPTO_SUCCESS )
+    {
+        return retval;
+    }
+
+    printf("22re:");
+    for(int i=0; i<macMsg->FRMPayloadSize; i++ ){
+        printf("[%02X]",macMsg->FRMPayload[i] );
+        
+    }
+    printf("\n");
+
+    printf("[%s][%d]\n", __func__, __LINE__);
+
+    if( LoRaMacSerializerData( macMsg ) != LORAMAC_SERIALIZER_SUCCESS )
+    {
+        return LORAMAC_CRYPTO_ERROR_SERIALIZER;
+    }
+
+
+    printf("111rec:");
+    for(int i=0; i< macMsg->BufSize; i++){
+        printf("[%02X]", macMsg->Buffer[i]);
+
+    }
+
+    printf("\n");
+
+    // Parse the message
+    // if( LoRaMacParserData( macMsg ) != LORAMAC_PARSER_SUCCESS )
+    // {
+         
+    //     return LORAMAC_CRYPTO_ERROR_PARSER;
+    // }
+
+    // Verify mic
+    retval = ComputeCmacB0( macMsg->Buffer, ( macMsg->BufSize - LORAMAC_MIC_FIELD_SIZE ), micComputationKeyID, isAck, DOWNLINK, address, fCntDown, &(macMsg->MIC) );
+    if( retval != LORAMAC_CRYPTO_SUCCESS )
+    {
+        printf("[%s][%d][%d]\n", __func__, __LINE__,retval );
+        return retval;
+    }
+    printf("[%s][%d]\n", __func__, __LINE__);
+    //add mic
+    // Parse the message
+    if( LoRaMacSerializerData( macMsg ) != LORAMAC_SERIALIZER_SUCCESS )
+    {
+        return LORAMAC_CRYPTO_ERROR_PARSER;
+    }
+    return LORAMAC_PARSER_SUCCESS;
+}

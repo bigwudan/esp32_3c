@@ -1045,15 +1045,14 @@ static void _test_wg(){
     printf("xxxxx[%d]\n", macCryptoStatus);
     while(1);
 #endif
-#if 1
+#if 0
     AppPort = 2;
     printf("xxxxx[%s][%d]\n", __func__, __LINE__);
     PrepareTxFrame( AppPort );
 
     SendFrame( );
 #endif
-//[40][00][00][00][00][00][01][00][02][04][31][61][77][D9][0C]
-//LoRaMacParserStatus_t lorawan_wg_rev_data( LoRaMacMessageData_t*  macMsgData)
+#if 0
     uint8_t buf[] = {0x40,0x00,0x00,0x00,0x00,0x00,0x01,0x00,0x02,0x04,0x31,0x61,0x77,0xD9,0x0C};
     LoRaMacMessageData_t  macMsgData = {0};
     macMsgData.Buffer = buf;
@@ -1061,6 +1060,45 @@ static void _test_wg(){
 
     macMsgData.FRMPayload = calloc(1, 512);
     lorawan_wg_rev_data(&macMsgData);
+#endif   
+    LoRaMacMessageData_t macMsg = {0};
+    macMsg.MHDR.Value = 0x11;
+  
+    macMsg.FHDR.DevAddr = 0x123456;
+
+    macMsg.FHDR.FCtrl.Value =0x11;
+
+    macMsg.FHDR.FCnt = 0x01;
+    macMsg.FHDR.FCtrl.Bits.FOptsLen = 0x02;
+    macMsg.FHDR.FOpts[0] = 0x11;
+    macMsg.FHDR.FOpts[1] = 0x22;
+
+    // Initialize anyway with zero.
+    macMsg.FPort = 0x22;
+    macMsg.FRMPayloadSize = 3;
+    uint8_t t_buf[64] = {0};
+
+    t_buf[0] = 0x11;
+    t_buf[1] = 0x22;
+    t_buf[2] = 0x33;
+
+
+
+    macMsg.FRMPayload= t_buf;
+
+    macMsg.Buffer = calloc(1, 512);
+    macMsg.BufSize = 0xff;
+
+    lorawan_wg_send_data(&macMsg);
+
+    printf("rec:");
+    for(int i=0; i< macMsg.BufSize; i++){
+        printf("[%02X]", macMsg.Buffer[i]);
+
+    }
+
+    printf("\n");
+    while(1);
 }
 
 #if 1
