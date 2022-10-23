@@ -1001,7 +1001,6 @@ void RadioSetMaxPayloadLength( RadioModems_t modem, uint8_t max )
 
 void RadioSetPublicNetwork( bool enable )
 {
-    printf("xxxxx[%s][%d]\n", __func__, __LINE__);
     RadioPublicNetwork.Current = RadioPublicNetwork.Previous = enable;
     RadioSetModem( MODEM_LORA );
     if( enable == true )

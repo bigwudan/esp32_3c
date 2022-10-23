@@ -1506,7 +1506,22 @@ LoRaMacCryptoStatus_t LoRaMacCryptoSecureMessage( uint32_t fCntUp, uint8_t txDr,
 
     if( fCntUp > CryptoCtx.NvmCtx->FCntList.FCntUp )
     {
+        printf("11org:");
+        for(int i=0; i<macMsg->FRMPayloadSize; i++){
+            printf("[%02X]", macMsg->FRMPayload[i]);
+
+        }
+        printf("\n");
+
+        printf("KeyID[%d],DevAddr[%02lX],UPLINK[%d],fCntUp[%02lX]\n",payloadDecryptionKeyID,macMsg->FHDR.DevAddr,UPLINK,fCntUp );
         retval = PayloadEncrypt( macMsg->FRMPayload, macMsg->FRMPayloadSize, payloadDecryptionKeyID, macMsg->FHDR.DevAddr, UPLINK, fCntUp );
+        printf("22org:");
+        for(int i=0; i<macMsg->FRMPayloadSize; i++){
+            printf("[%02X]", macMsg->FRMPayload[i]);
+
+        }
+        printf("\n");  
+       
         if( retval != LORAMAC_CRYPTO_SUCCESS )
         {
             return retval;
@@ -1570,9 +1585,16 @@ LoRaMacCryptoStatus_t LoRaMacCryptoSecureMessage( uint32_t fCntUp, uint8_t txDr,
     // Re-serialize message to add the MIC
     if( LoRaMacSerializerData( macMsg ) != LORAMAC_SERIALIZER_SUCCESS )
     {
+
+
         return LORAMAC_CRYPTO_ERROR_SERIALIZER;
     }
+    printf("snd:");
+    for(int i=0; i< macMsg->BufSize; i++){
+        printf("[%02X]", macMsg->Buffer[i]);
 
+    }
+    printf("\n");
     return LORAMAC_CRYPTO_SUCCESS;
 }
 
@@ -1747,8 +1769,9 @@ LoRaMacCryptoStatus_t LoRaMacCryptoDeriveMcSessionKeyPair( AddressIdentifier_t a
 }
 
 
-LoRaMacCryptoStatus_t wg_LoRaMacCryptoUnsecureMessage( AddressIdentifier_t addrID, uint32_t address, FCntIdentifier_t fCntID, uint32_t fCntDown, LoRaMacMessageData_t* macMsg )
+LoRaMacCryptoStatus_t wg_LoRaMacCryptoUnsecureMessage( AddressIdentifier_t addrID, uint32_t address, FCntIdentifier_t fCntID, uint32_t fCntUp, LoRaMacMessageData_t* macMsg )
 {
+#if 0    
     LoRaMacCryptoStatus_t retval = LORAMAC_CRYPTO_ERROR;
     KeyIdentifier_t payloadDecryptionKeyID = APP_S_KEY;
     KeyIdentifier_t micComputationKeyID = S_NWK_S_INT_KEY;
@@ -1794,6 +1817,79 @@ LoRaMacCryptoStatus_t wg_LoRaMacCryptoUnsecureMessage( AddressIdentifier_t addrI
         return retval;
     }
 
+    return LORAMAC_CRYPTO_SUCCESS;
+#endif
+    LoRaMacCryptoStatus_t retval = LORAMAC_CRYPTO_ERROR;
+    KeyIdentifier_t payloadDecryptionKeyID = APP_S_KEY;
+
+    if( macMsg == NULL )
+    {
+        return LORAMAC_CRYPTO_ERROR_NPE;
+    }
+
+    if( fCntUp < CryptoCtx.NvmCtx->FCntList.FCntUp )
+    {
+        return LORAMAC_CRYPTO_FAIL_FCNT_SMALLER;
+    }
+
+    // Encrypt payload
+    if( macMsg->FPort == 0 )
+    {
+        // Use network session key
+        payloadDecryptionKeyID = NWK_S_ENC_KEY;
+    }
+    uint32_t MIC_val = 0;
+    retval = ComputeCmacB0( macMsg->Buffer, ( macMsg->BufSize - LORAMAC_MIC_FIELD_SIZE ), NWK_S_ENC_KEY, false, UPLINK, address, fCntUp, &MIC_val );
+    if( retval != LORAMAC_CRYPTO_SUCCESS )
+    {
+
+        return retval;
+    }
+    if(MIC_val != macMsg->MIC){
+
+        return retval;
+    }
+
+    printf("11FRMPayloadSize:");
+    for(int i=0; i<macMsg->FRMPayloadSize; i++){
+        printf("[%02X]", macMsg->FRMPayload[i]);
+
+    }
+
+    printf("\n");
+    //wg_PayloadDecrypt
+    //retval = PayloadEncrypt( macMsg->FRMPayload, macMsg->FRMPayloadSize, payloadDecryptionKeyID, macMsg->FHDR.DevAddr, UPLINK, fCntUp );
+    
+    printf("KeyID[%d],DevAddr[%02lX],UPLINK[%d],fCntUp[%02lX]\n",payloadDecryptionKeyID,macMsg->FHDR.DevAddr,UPLINK,fCntUp );
+    retval = PayloadEncrypt( macMsg->FRMPayload, macMsg->FRMPayloadSize, payloadDecryptionKeyID, macMsg->FHDR.DevAddr, UPLINK, fCntUp );  
+
+    //test
+    printf("22FRMPayloadSize:");
+    for(int i=0; i<macMsg->FRMPayloadSize; i++){
+        printf("[%02X]", macMsg->FRMPayload[i]);
+
+    }
+
+    printf("\n");
+    if( retval != LORAMAC_CRYPTO_SUCCESS )
+    {
+        return retval;
+    }
+
+#if( USE_LRWAN_1_1_X_CRYPTO == 1 )
+    if( CryptoCtx.NvmCtx->LrWanVersion.Fields.Minor == 1 )
+    {
+        // Encrypt FOpts
+        retval = FOptsEncrypt( macMsg->FHDR.FCtrl.Bits.FOptsLen, macMsg->FHDR.DevAddr, UPLINK, FCNT_UP, fCntUp, macMsg->FHDR.FOpts );
+        if( retval != LORAMAC_CRYPTO_SUCCESS )
+        {
+            return retval;
+        }
+    }
+#endif
+   
+
+    while(1);
     return LORAMAC_CRYPTO_SUCCESS;
 }
 

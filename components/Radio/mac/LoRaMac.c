@@ -2245,10 +2245,10 @@ LoRaMacStatus_t Send( LoRaMacHeader_t* macHdr, uint8_t fPort, void* fBuffer, uin
     CalcNextAdrParams_t adrNext;
 
     // Check if we are joined
-    if( MacCtx.NvmCtx->NetworkActivation == ACTIVATION_TYPE_NONE )
-    {
-        return LORAMAC_STATUS_NO_NETWORK_JOINED;
-    }
+    // if( MacCtx.NvmCtx->NetworkActivation == ACTIVATION_TYPE_NONE )
+    // {
+    //     return LORAMAC_STATUS_NO_NETWORK_JOINED;
+    // }
     if( MacCtx.NvmCtx->MaxDCycle == 0 )
     {
         MacCtx.NvmCtx->AggregatedTimeOff = 0;
@@ -2793,15 +2793,16 @@ LoRaMacStatus_t SendFrameOnChannel( uint8_t channel )
     {
         MacCtx.ChannelsNbTransCounter++;
     }
-
-    // Send now
-    Radio.Send( MacCtx.PktBuffer, MacCtx.PktBufferLen );
     printf("send:");
     for(int i=0; i<MacCtx.PktBufferLen ; i++){
         printf("[%02X]", MacCtx.PktBuffer[i]);
 
     }
     printf("\n");
+ 
+    // Send now
+    Radio.Send( MacCtx.PktBuffer, MacCtx.PktBufferLen );
+
     return LORAMAC_STATUS_OK;
 }
 
@@ -4603,10 +4604,13 @@ LoRaMacStatus_t LoRaMacMcpsRequest( McpsReq_t* mcpsRequest )
     {
         return LORAMAC_STATUS_PARAMETER_INVALID;
     }
+
+#if 0    
     if( LoRaMacIsBusy( ) == true )
     {
         return LORAMAC_STATUS_BUSY;
     }
+#endif
 
     macHdr.Value = 0;
     memset1( ( uint8_t* ) &MacCtx.McpsConfirm, 0, sizeof( MacCtx.McpsConfirm ) );

@@ -48,7 +48,7 @@ void SX126xWaitOnBusy( void )
    while(GPIO_ReadInputDataBit(RADIO_BUSY_PORT,RADIO_BUSY_PIN)==Bit_SET);
 #else
 
-   while(spi_driver_get_busy_io()==1);
+   //while(spi_driver_get_busy_io()==1);
 #endif   
 }
 

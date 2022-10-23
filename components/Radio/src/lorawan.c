@@ -123,6 +123,9 @@ static uint8_t AppKey[] = LORAWAN_APP_KEY;
 #endif
 static uint8_t NwkKey[] = LORAWAN_NWK_KEY;
 
+//test
+static uint8_t AppSKey[] = LORAWAN_APP_S_KEY;
+static uint8_t NwkSEncKey[] = LORAWAN_NWK_S_ENC_KEY;
 #if( OVER_THE_AIR_ACTIVATION == 0 )
 
 static uint8_t FNwkSIntKey[] = LORAWAN_F_NWK_S_INT_KEY;
@@ -379,8 +382,9 @@ static void PrepareTxFrame( uint8_t port )
     {
     case 2:
         {
-            AppDataSizeBackup = AppDataSize = 1;
-            AppDataBuffer[0] = AppLedStateOn;
+            AppDataSizeBackup = AppDataSize = 2;
+            AppDataBuffer[0] = 0x11;
+            AppDataBuffer[1] = 0x33;
         }
         break;
     case 224:
@@ -995,6 +999,8 @@ static void _test_wg(){
     wg_LoRaMacCryptoVerifyJoinRequest(test_buf, sizeof(test_buf), &macMsg);
     return ;
 #endif
+
+#if 0
     LoRaMacMessageJoinAccept_t macMsg = {0};
 
     macMsg.Buffer = calloc(1, 512);
@@ -1038,6 +1044,23 @@ static void _test_wg(){
     macCryptoStatus = LoRaMacCryptoHandleJoinAccept( JOIN_REQ, SecureElementGetJoinEui( ), &macMsgJoinAccept );
     printf("xxxxx[%d]\n", macCryptoStatus);
     while(1);
+#endif
+#if 1
+    AppPort = 2;
+    printf("xxxxx[%s][%d]\n", __func__, __LINE__);
+    PrepareTxFrame( AppPort );
+
+    SendFrame( );
+#endif
+//[40][00][00][00][00][00][01][00][02][04][31][61][77][D9][0C]
+//LoRaMacParserStatus_t lorawan_wg_rev_data( LoRaMacMessageData_t*  macMsgData)
+    uint8_t buf[] = {0x40,0x00,0x00,0x00,0x00,0x00,0x01,0x00,0x02,0x04,0x31,0x61,0x77,0xD9,0x0C};
+    LoRaMacMessageData_t  macMsgData = {0};
+    macMsgData.Buffer = buf;
+    macMsgData.BufSize = sizeof(buf);
+
+    macMsgData.FRMPayload = calloc(1, 512);
+    lorawan_wg_rev_data(&macMsgData);
 }
 
 #if 1
@@ -1143,7 +1166,15 @@ void lorawan_main( void )
                     mibReq.Type = MIB_JOIN_EUI;
                     mibReq.Param.JoinEui = joinEui;
                     LoRaMacMibSetRequestConfirm( &mibReq );
- 
+
+// test 
+                    mibReq.Type = MIB_APP_S_KEY;
+                    mibReq.Param.AppSKey = AppSKey;
+                    LoRaMacMibSetRequestConfirm( &mibReq );
+
+                    mibReq.Type = MIB_NWK_S_ENC_KEY;
+                    mibReq.Param.NwkSEncKey = NwkSEncKey;
+                    LoRaMacMibSetRequestConfirm( &mibReq );
 #if( OVER_THE_AIR_ACTIVATION == 0 )
                     // Choose a random device address if not already defined in Commissioning.h
                     if( DevAddr == 0 )

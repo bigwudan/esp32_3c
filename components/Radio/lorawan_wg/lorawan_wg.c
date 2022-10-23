@@ -274,19 +274,39 @@ LoRaMacParserStatus_t LoRaMacJoinAcceptToBuff( LoRaMacMessageJoinAccept_t* macMs
 /*
 网关解析接收到的上行数据
 **/
-LoRaMacParserStatus_t lorawan_wg_rev_data( LoRaMacMessageData_t*  macMsgData){
+LoRaMacParserStatus_t lorawan_wg_rev_data( LoRaMacMessageData_t*  macMsgData ){
     if(macMsgData == 0){
         return LORAMAC_PARSER_FAIL;
     }
-    uint32_t address = 0;
+    
 
     if( LORAMAC_PARSER_SUCCESS != LoRaMacParserData( macMsgData ) )
     {
         return LORAMAC_PARSER_FAIL;
     }
-    uint32_t fCntDown = 1;
+  
 
-    if(LORAMAC_CRYPTO_SUCCESS != wg_LoRaMacCryptoUnsecureMessage( MULTICAST_0_ADDR, address, FCNT_UP,  fCntDown, macMsgData ))
+#if 0
+    printf("mhdr[%02X]\n", macMsgData->MHDR.Value);
+    printf("DevAddr[%02lX]\n", macMsgData->FHDR.DevAddr);    
+    printf("port[%02X]\n", macMsgData->FPort);
+
+    printf("FCtrl.Value[%02X]\n", macMsgData->FHDR.FCtrl.Value);
+
+    printf("FCnt[%02X]\n", macMsgData->FHDR.FCnt);
+
+
+    printf("payload:");
+    for(int i=0; i<macMsgData->FRMPayloadSize; i++ ){
+        printf("[%02X]", macMsgData->FRMPayload[i]);
+
+    }
+    printf("\n");
+    printf("mic[%02lX]\n", macMsgData->MIC);
+ #endif
+    
+
+    if(LORAMAC_CRYPTO_SUCCESS != wg_LoRaMacCryptoUnsecureMessage( MULTICAST_0_ADDR, macMsgData->FHDR.DevAddr, FCNT_UP,  macMsgData->FHDR.FCnt, macMsgData ))
     {
         return LORAMAC_PARSER_FAIL;
     }
