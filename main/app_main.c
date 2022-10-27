@@ -27,11 +27,83 @@
 #include <time.h>
 #include <sys/time.h>
 
+#include "driver/i2c.h"
+
 #include "lorawan_wg.h"
+
+#include "pca9535.h"
+#include "pcf8563.h"
+
 
 static const char TAG[] = "app_main";
 
+//static const char *TAG = "i2c-simple-example";
 
+#define I2C_MASTER_SCL_IO 2         /*!< GPIO number used for I2C master clock */
+#define I2C_MASTER_SDA_IO 1         /*!< GPIO number used for I2C master data  */
+#define I2C_MASTER_NUM 0            /*!< I2C master i2c port number, the number of i2c peripheral interfaces available will depend on the chip */
+#define I2C_MASTER_FREQ_HZ 100000   /*!< I2C master clock frequency */
+#define I2C_MASTER_TX_BUF_DISABLE 0 /*!< I2C master doesn't need buffer */
+#define I2C_MASTER_RX_BUF_DISABLE 0 /*!< I2C master doesn't need buffer */
+#define I2C_MASTER_TIMEOUT_MS 1000
+
+/**
+ * @brief i2c master initialization
+ */
+static esp_err_t
+i2c_master_init(void)
+{
+    int i2c_master_port = I2C_MASTER_NUM;
+
+    i2c_config_t conf = {
+        .mode = I2C_MODE_MASTER,
+        .sda_io_num = I2C_MASTER_SDA_IO,
+        .scl_io_num = I2C_MASTER_SCL_IO,
+        .sda_pullup_en = GPIO_PULLUP_ENABLE,
+        .scl_pullup_en = GPIO_PULLUP_ENABLE,
+        .master.clk_speed = I2C_MASTER_FREQ_HZ,
+    };
+
+    i2c_param_config(i2c_master_port, &conf);
+
+    return i2c_driver_install(i2c_master_port, conf.mode, I2C_MASTER_RX_BUF_DISABLE, I2C_MASTER_TX_BUF_DISABLE, 0);
+}
+
+void app_main(void)
+{
+    ESP_ERROR_CHECK(i2c_master_init());
+    ESP_LOGI(TAG, "I2C initialized successfully");
+
+    pca9535_init();
+    ESP_LOGI(TAG, "pca9535 initialized successfully");
+
+    pcf8563_write_time();
+
+    while (1)
+    {
+#if 0
+        //读输入寄存器
+        pca9535_read_input();
+        //写输出寄存器
+        ESP_LOGI(TAG, "继电器开");
+        pca9535_write_outpin(1, 0, 1);
+        vTaskDelay(1000 / portTICK_PERIOD_MS);
+        ESP_LOGI(TAG, "继电器关");
+        pca9535_write_outpin(1, 0, 0);
+        vTaskDelay(1000 / portTICK_PERIOD_MS);
+#endif
+        pca9535_write_outpin(1, 0, 0);
+        pca9535_read_input();
+        pcf8563_read_time();
+        vTaskDelay(1000 / portTICK_PERIOD_MS);
+    }
+
+    ESP_ERROR_CHECK(i2c_driver_delete(I2C_MASTER_NUM));
+    ESP_LOGI(TAG, "I2C de-initialized successfully");
+}
+
+
+#if 0
 int show_time(void)
 {
     // time_t t;
@@ -270,6 +342,6 @@ void app_main(void)
 #endif
 }
 
-
+#endif
 
 
