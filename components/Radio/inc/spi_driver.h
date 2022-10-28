@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <esp_err.h>
 
+#include "pca9535.h"
 
 esp_err_t spi_driver_init();
 

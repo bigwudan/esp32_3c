@@ -21,6 +21,23 @@ static const char TAG[] = "spi_driver";
 #define CLK_IO 12
 #define MOSI_IO 11
 #define MISO_IO 13
+
+#define PCA9535_BUSY_PORT 0
+#define PCA9535_BUSY_IO   1
+
+#define PCA9535_INT_CTL2_PORT 1
+#define PCA9535_INT_CTL2_IO 6
+
+
+#define PCA9535_INT_CTL1_PORT 1
+#define PCA9535_INT_CTL1_IO 5
+
+#define PCA9535_RESET_PORT 1
+#define PCA9535_RESET_IO 4
+
+#define PCA9535_CS_PORT 1
+#define PCA9535_CS_IO 3
+
 static spi_device_handle_t spi;
 
 //创建中断
@@ -73,7 +90,7 @@ esp_err_t spi_driver_init(){
     ret=spi_bus_add_device(SPI2_HOST, &devcfg, &spi);
 
 
-    
+#if 0    
     gpio_config_t io_conf = {};
     io_conf.intr_type = GPIO_INTR_DISABLE;
     io_conf.mode = GPIO_MODE_OUTPUT;
@@ -103,28 +120,36 @@ esp_err_t spi_driver_init(){
 #endif
 
     _add_cs_io();
+#endif    
     return ret;
 }
 
 //读取中断状态
 int spi_driver_get_busy_io(){
-   return gpio_get_level(BUSY_IO);
+    int res = 0;
+    res = pca9535_read_inpin(PCA9535_BUSY_PORT, PCA9535_BUSY_IO);
+   return res;
 }
 
 //读取中断状态
 int spi_driver_get_intr_io(){
-   return gpio_get_level(INTR_IO);
+    int res = 0;
+    res = pca9535_read_inpin(PCA9535_INT_CTL1_PORT, PCA9535_INT_CTL1_IO);
+
+   return res;
 }
 
 //设置重启状态
 void spi_driver_set_reset(uint8_t val){
-  gpio_set_level(RESET_IO, val);
+  //gpio_set_level(RESET_IO, val);
+  pca9535_write_outpin(PCA9535_RESET_PORT, PCA9535_RESET_IO, val);
 }
 
 
 //设置片选
 void spi_driver_set_cs(uint8_t val){
-  gpio_set_level(CS_IO, val);
+  //gpio_set_level(CS_IO, val);
+    pca9535_write_outpin(PCA9535_CS_PORT, PCA9535_CS_IO, val);
 }
 
 //等待时间

@@ -37,39 +37,10 @@
 static const char TAG[] = "app_main";
 
 
-void app_main(void)
-{
 
 
-    pca9535_init();
-    ESP_LOGI(TAG, "pca9535 initialized successfully");
 
-    pcf8563_write_time();
-
-    while (1)
-    {
-#if 0
-        //读输入寄存器
-        pca9535_read_input();
-        //写输出寄存器
-        ESP_LOGI(TAG, "继电器开");
-        pca9535_write_outpin(1, 0, 1);
-        vTaskDelay(1000 / portTICK_PERIOD_MS);
-        ESP_LOGI(TAG, "继电器关");
-        pca9535_write_outpin(1, 0, 0);
-        vTaskDelay(1000 / portTICK_PERIOD_MS);
-#endif
-        pca9535_write_outpin(1, 0, 0);
-        pca9535_read_input();
-        pcf8563_read_time();
-        vTaskDelay(1000 / portTICK_PERIOD_MS);
-    }
-
-
-}
-
-
-#if 0
+#if 1
 int show_time(void)
 {
     // time_t t;
@@ -295,16 +266,16 @@ void app_main(void)
     }
 #endif
     esp_err_t ret;
+    pca9535_init();
     ret = spi_driver_init();
     ESP_LOGI(TAG, "spi_driver[%d]", ret);
-//    lora_app_create_task();
-//    show_time();
-//     while(1){
-//         vTaskDelay(pdMS_TO_TICKS(50)); //延迟500ms
-//         show_task();
-       
-//     }
-    lorawan_main();
+    lora_app_create_task();
+   
+    while(1){
+        vTaskDelay(pdMS_TO_TICKS(50)); //延迟500ms
+
+    }
+
 #endif
 }
 

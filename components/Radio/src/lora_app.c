@@ -262,6 +262,9 @@ static void OnRxError( void )
 }
 
 static void lora_task_worker(void *aContext){
+
+
+
     //Radio initialization
     RadioEvents.TxDone = OnTxDone;
     RadioEvents.RxDone = OnRxDone;
@@ -272,9 +275,15 @@ static void lora_task_worker(void *aContext){
     
     Radio.Init( &RadioEvents );
     Radio.SetChannel( RF_FREQUENCY );
-  //  Radio.WriteBuffer(0x06C0,data,2);
-   // Radio.ReadBuffer(0x06C0,test,2);
-    
+
+#if 0
+   uint8_t data[2]={0x12,0x34};
+   static uint8_t test[2];
+   Radio.WriteBuffer(0x06C0,data,2);
+   Radio.ReadBuffer(0x06C0,test,2);
+   ESP_LOGI(TAG, "test[%02X][%02X]", test[0], test[1]);
+#endif
+
 #if defined( USE_MODEM_LORA )
     
     Radio.SetTxConfig( MODEM_LORA, TX_OUTPUT_POWER, 0, LORA_BANDWIDTH,
@@ -322,13 +331,14 @@ static void lora_task_worker(void *aContext){
     
     while( 1 )
     {
-#if 1        
+#if 0        
         if(spi_driver_recv() == 1){
             Radio.IrqProcess( ); // Process Radio IRQ
         }
 #else
         Radio.IrqProcess( ); // Process Radio IRQ
         vTaskDelay(pdMS_TO_TICKS(5)); //延迟500ms
+        
 #endif        
 
     }

@@ -39,6 +39,7 @@
         "type_traits": "c",
         "xhash": "c",
         "xtree": "c",
-        "xmemory0": "c"
+        "xmemory0": "c",
+        "stdint.h": "c"
     }
 }

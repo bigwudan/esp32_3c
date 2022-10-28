@@ -28,4 +28,13 @@ void pca9535_read_input(void);
 void pca9535_write_outreg(uint8_t port0_Reg, uint8_t port1_Reg);
 void pca9535_write_outpin(uint8_t portNum, uint8_t pinNum, uint8_t value);
 void pca9535_init(void);
+
+/**
+ * @brief 读取当个IO状态
+ * 
+ * @param portNum 端口号
+ * @param pinNum  pin号
+ * @return uint8_t 
+ */
+uint8_t pca9535_read_inpin(uint8_t portNum, uint8_t pinNum);
 #endif

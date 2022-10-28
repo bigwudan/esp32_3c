@@ -64,8 +64,8 @@ void pca9535_init(void)
 {
     //输入输出设置
     // IO_0 = 0001 1111  0x1F
-    // IO_1 = 0000 0000  0x00
-    static const uint8_t pca9535_setbuff[3] = {0x06, 0x1F, 0x00};
+    // IO_1 = 0110 0000  0x00
+    static const uint8_t pca9535_setbuff[3] = {0x06, 0x1F, 0x60};
 
     i2c_master_init();
     
@@ -105,6 +105,7 @@ void pca9535_read_input(void)
     extIO_InReg[0].byte = readBuff[0];
     extIO_InReg[1].byte = readBuff[1];
 
+#if 0
     ESP_LOGI(TAG, "输入寄存器 REG0 = 0x%02X, REG1 = 0x%02X", readBuff[0], readBuff[1]);
     ESP_LOGI(TAG, "\r\n REG0_0 = %d\r\n REG0_1 = %d\r\n REG0_2 = %d\r\n REG0_3 = %d\r\n REG0_4 = %d\r\n REG0_5 = %d\r\n REG0_6 = %d\r\n REG0_7 = %d\r\n",
              extIO_InReg[0].bits.bit0,
@@ -124,4 +125,47 @@ void pca9535_read_input(void)
              extIO_InReg[1].bits.bit5,
              extIO_InReg[1].bits.bit6,
              extIO_InReg[1].bits.bit7);
+#endif             
+}
+
+/**
+ * @brief 读取当个IO状态
+ * 
+ * @param portNum 端口号
+ * @param pinNum  pin号
+ * @return uint8_t 
+ */
+uint8_t pca9535_read_inpin(uint8_t portNum, uint8_t pinNum){
+    uint8_t res = 0;
+    pca9535_read_input();
+    switch (pinNum)
+    {
+    case 0:
+        res = extIO_InReg[portNum].bits.bit0;
+        break;
+    case 1:
+        res = extIO_InReg[portNum].bits.bit1;
+        break;
+    case 2:
+        res = extIO_InReg[portNum].bits.bit2;
+        break;
+    case 3:
+        res = extIO_InReg[portNum].bits.bit3;
+        break;
+    case 4:
+        res = extIO_InReg[portNum].bits.bit4;
+        break;
+    case 5:
+        res = extIO_InReg[portNum].bits.bit5;
+        break;
+    case 6:
+        res = extIO_InReg[portNum].bits.bit6;
+        break;
+    case 7:
+        res = extIO_InReg[portNum].bits.bit7;
+        break;
+    default:
+        break;
+    }
+    return res;
 }
