@@ -24,6 +24,8 @@
 
 #include "driver/ledc.h"
 
+#define PCA9535
+
 //bk
 #define LEDC_TIMER              LEDC_TIMER_0
 #define LEDC_MODE               LEDC_LOW_SPEED_MODE
@@ -37,30 +39,33 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////// Please update the following configuration according to your LCD spec //////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-#define RGB_LCD_PIXEL_CLOCK_HZ     (18 * 1000 * 1000)
+#define RGB_LCD_PIXEL_CLOCK_HZ     (10 * 1000 * 1000) //(18 * 1000 * 1000)
 #define RGB_LCD_BK_LIGHT_ON_LEVEL  1
 #define RGB_LCD_BK_LIGHT_OFF_LEVEL !RGB_LCD_BK_LIGHT_ON_LEVEL
 #define RGB_PIN_NUM_BK_LIGHT       4
-#define RGB_PIN_NUM_HSYNC          46
-#define RGB_PIN_NUM_VSYNC          3
-#define RGB_PIN_NUM_DE             0
-#define RGB_PIN_NUM_PCLK           9
-#define RGB_PIN_NUM_DATA0          14 // B0
-#define RGB_PIN_NUM_DATA1          13 // B1
-#define RGB_PIN_NUM_DATA2          12 // B2
-#define RGB_PIN_NUM_DATA3          11 // B3
-#define RGB_PIN_NUM_DATA4          10 // B4
-#define RGB_PIN_NUM_DATA5          39 // G0
-#define RGB_PIN_NUM_DATA6          38 // G1
-#define RGB_PIN_NUM_DATA7          45 // G2
-#define RGB_PIN_NUM_DATA8          48 // G3
-#define RGB_PIN_NUM_DATA9          47 // G4
-#define RGB_PIN_NUM_DATA10         21 // G5
-#define RGB_PIN_NUM_DATA11         1  // R0
-#define RGB_PIN_NUM_DATA12         2  // R1
-#define RGB_PIN_NUM_DATA13         42 // R2
-#define RGB_PIN_NUM_DATA14         41 // R3
-#define RGB_PIN_NUM_DATA15         40 // R4
+
+
+#define RGB_PIN_NUM_HSYNC          38
+#define RGB_PIN_NUM_VSYNC          39
+#define RGB_PIN_NUM_DE             40
+#define RGB_PIN_NUM_PCLK           41
+#define RGB_PIN_NUM_DATA0          45 // B0
+#define RGB_PIN_NUM_DATA1          48 // B1
+#define RGB_PIN_NUM_DATA2          47 // B2
+#define RGB_PIN_NUM_DATA3          21 // B3
+#define RGB_PIN_NUM_DATA4          14 // B4
+#define RGB_PIN_NUM_DATA5          10 // G0
+#define RGB_PIN_NUM_DATA6          9 // G1
+#define RGB_PIN_NUM_DATA7          46 // G2
+#define RGB_PIN_NUM_DATA8          3 // G3
+#define RGB_PIN_NUM_DATA9          8 // G4
+#define RGB_PIN_NUM_DATA10         16 // G5
+#define RGB_PIN_NUM_DATA11         15  // R0
+#define RGB_PIN_NUM_DATA12         7  // R1
+#define RGB_PIN_NUM_DATA13         6 // R2
+#define RGB_PIN_NUM_DATA14         5 // R3
+#define RGB_PIN_NUM_DATA15         4 // R4
+
 #define RGB_PIN_NUM_DISP_EN        -1
 
 // The pixel number in horizontal and vertical
@@ -221,7 +226,7 @@ static void _lvgl_init(){
 
     //tp
 
-
+#ifdef TP_DEV
     static lv_indev_drv_t indev_drv;    // Input device driver (Touch)
     lv_indev_drv_init(&indev_drv);
     indev_drv.type = LV_INDEV_TYPE_POINTER;
@@ -230,7 +235,7 @@ static void _lvgl_init(){
     indev_drv.user_data = NULL;
 
     lv_indev_drv_register(&indev_drv);    
-
+#endif
 
     // Tick interface for LVGL (using esp_timer to generate 2ms periodic event)
     const esp_timer_create_args_t lvgl_tick_timer_args = {
@@ -240,7 +245,7 @@ static void _lvgl_init(){
     esp_timer_handle_t lvgl_tick_timer = NULL;
     ESP_ERROR_CHECK(esp_timer_create(&lvgl_tick_timer_args, &lvgl_tick_timer));
     ESP_ERROR_CHECK(esp_timer_start_periodic(lvgl_tick_timer, LVGL_TICK_PERIOD_MS * 1000));  
-    example_lvgl_demo_ui();  
+   example_lvgl_demo_ui();  
 
 }
 
@@ -288,13 +293,10 @@ static void _rgb_dev_init(){
 
     //bk
      // Set the LEDC peripheral configuration
-   
+#ifndef PCA9535   
     example_ledc_init();
     lcd_dev_set_bklight(100);
-    // // Set duty to 50%
-    // ESP_ERROR_CHECK(ledc_set_duty(LEDC_MODE, LEDC_CHANNEL, LEDC_DUTY));
-    // // Update duty to apply the new value
-    // ESP_ERROR_CHECK(ledc_update_duty(LEDC_MODE, LEDC_CHANNEL));   
+#endif
 
 
     esp_lcd_rgb_panel_config_t panel_config = {
@@ -368,10 +370,14 @@ static void _rgb_dev_init(){
 void lcd_dev_init(){
     ESP_LOGI(TAG, "lcd_dev_init");
     _rgb_dev_init();
-    _lvgl_init();
 
     //tp
+#ifdef TP_DEV    
     lcd_dev_tp_init();
+#endif    
+    _lvgl_init();
+
+
 
 
 
@@ -381,7 +387,10 @@ void lcd_dev_init(){
 void lcd_dev_task(){
 
     lv_timer_handler();
+
+#ifdef TP_DEV    
     lcd_dev_tp_scan_tp();
+#endif    
     return ;
 }
 

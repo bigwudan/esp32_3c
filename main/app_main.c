@@ -180,10 +180,11 @@ extern void BoardInitMcu( void );
 void app_main(void)
 {
 
-#if 0    
-    wifi_mod_start();
+#if 1   
+    pca9535_init(); 
+    // wifi_mod_start();
 
-    bluetooth_app();
+    // bluetooth_app();
 
     lcd_dev_init();
 
