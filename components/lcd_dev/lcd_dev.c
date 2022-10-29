@@ -26,6 +26,8 @@
 
 #define PCA9535
 
+#define TP_DEV
+
 //bk
 #define LEDC_TIMER              LEDC_TIMER_0
 #define LEDC_MODE               LEDC_LOW_SPEED_MODE
