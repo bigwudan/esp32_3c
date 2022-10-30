@@ -89,7 +89,9 @@ esp_err_t spi_driver_init(){
     //Attach the LCD to the SPI bus
     ret=spi_bus_add_device(SPI2_HOST, &devcfg, &spi);
 
-
+    //开启背光
+    pca9535_write_outpin(0, 6 ,1);
+    pca9535_write_outpin(0, 7 ,1);
 #if 0    
     gpio_config_t io_conf = {};
     io_conf.intr_type = GPIO_INTR_DISABLE;

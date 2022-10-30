@@ -74,6 +74,8 @@ void pca9535_init(void)
 
 
     ESP_ERROR_CHECK(i2c_master_write_to_device(I2C_MASTER_NUM, PCA9535_ADDR, pca9535_setbuff, sizeof(pca9535_setbuff), I2C_MASTER_TIMEOUT_MS / portTICK_PERIOD_MS));
+
+
 }
 
 void pca9535_write_outpin(uint8_t portNum, uint8_t pinNum, uint8_t value)

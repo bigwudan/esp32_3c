@@ -400,3 +400,31 @@ void lora_app_init(){
 
 
 }
+
+
+void lora_app_set_pingpong(){
+    if(EnableMaster)
+    {
+          TX_Buffer[0] = 'P';
+          TX_Buffer[1] = 'I';
+          TX_Buffer[2] = 'N';
+          TX_Buffer[3] = 'G'; 
+          
+          crc_value=RadioComputeCRC(TX_Buffer,4,CRC_TYPE_IBM);//¼ÆËãµÃ³öÒª·¢ËÍÊý¾Ý°üCRCÖµ
+          TX_Buffer[4]=crc_value>>8;
+          TX_Buffer[5]=crc_value;
+          Radio.Send( TX_Buffer, 6);
+    }
+    else
+    {
+       Radio.Rx( RX_TIMEOUT_VALUE ); 
+    }
+
+
+
+}
+
+void lora_app_process(){
+    Radio.IrqProcess( ); // Process Radio IRQ
+
+}

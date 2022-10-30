@@ -26,7 +26,7 @@
 
 #define PCA9535
 
-#define TP_DEV
+//#define TP_DEV
 
 //bk
 #define LEDC_TIMER              LEDC_TIMER_0

@@ -186,11 +186,21 @@ void app_main(void)
 
     // bluetooth_app();
 
+
+
+    spi_driver_init();
+
+
     lcd_dev_init();
 
+    lora_app_init();
+    lora_app_set_pingpong();
+
     while (1) {
-        vTaskDelay(pdMS_TO_TICKS(10));
+        vTaskDelay(pdMS_TO_TICKS(100));
         lcd_dev_task();
+        pcf8563_read_time();
+        lora_app_process();
     }
 #else
 

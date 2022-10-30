@@ -9,5 +9,9 @@ void lora_app_create_task();
 void lorawan_main();
 
 void lora_app_init();
+
+void lora_app_set_pingpong();
+
+void lora_app_process();
 #endif
 
