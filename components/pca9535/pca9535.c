@@ -28,8 +28,18 @@ ExtIO_Reg_Type extIO_InReg[2] = {0x00};  // 2组io
 
 #define INTR_IO 42
 
+#if 1
+#define LOCK_DATA() do{xSemaphoreTake(xSemaphore,portMAX_DELAY);}while(0)
+#define UNLOCK_DATA() do{xSemaphoreGive( xSemaphore );}while(0)
+
+#else
+#define LOCK_DATA() 
+#define UNLOCK_DATA() 
+#endif
+
 static QueueHandle_t gpio_evt_queue = NULL;
 
+static SemaphoreHandle_t xSemaphore = NULL;
 
 static void IRAM_ATTR gpio_isr_handler(void *arg){
     uint32_t gpio_num = (uint32_t) arg;
@@ -57,12 +67,32 @@ static void _pca9535_inr(void *aContext){
 
 
 }
+
+/**
+ * 创建队列锁
+*/
+static void _create_lock(){
+    BaseType_t xReturn = 0;
+    //create a queue to handle gpio event from isr
+    gpio_evt_queue = xQueueCreate(10, sizeof(uint32_t)); 
+       /* 创建一个互斥量用于保护共享资源 */
+    xSemaphore = xSemaphoreCreateMutex();
+    
+    ESP_LOGI(TAG, "[%s][%p]", __func__, xSemaphore);
+    xReturn = xSemaphoreGive( xSemaphore );//给出二值信号量
+    ESP_LOGI(TAG, "[%s][%d]", __func__, xReturn);
+}
+
 /*
 设置中断脚
 */
 static void _set_intr(){
-
+    
     gpio_config_t io_conf = {};
+
+
+
+
     io_conf.intr_type = GPIO_INTR_NEGEDGE;
     io_conf.pin_bit_mask = 1ULL <<INTR_IO ;
     io_conf.mode = GPIO_MODE_INPUT;
@@ -71,8 +101,7 @@ static void _set_intr(){
     gpio_install_isr_service(0);
     gpio_isr_handler_add(INTR_IO, gpio_isr_handler, (void*)INTR_IO);
 
-    //create a queue to handle gpio event from isr
-    gpio_evt_queue = xQueueCreate(10, sizeof(uint32_t)); 
+
     xTaskCreate(_pca9535_inr, "pca9535", 4096, xTaskGetCurrentTaskHandle(), 1, NULL);  
 }
 
@@ -116,6 +145,9 @@ void pca9535_init(void)
     // IO_0 = 0001 1111  0x1F
     // IO_1 = 0110 0000  0x00
     uint8_t pca9535_setbuff[3] = {0x06, 0x1F, 0x60};
+    _create_lock();
+
+
     i2c_master_init();
     ESP_ERROR_CHECK(i2c_master_write_to_device(I2C_MASTER_NUM, PCA9535_ADDR, pca9535_setbuff, sizeof(pca9535_setbuff), I2C_MASTER_TIMEOUT_MS / portTICK_PERIOD_MS));
     extIO_OutReg[0].byte = 0xE0;
@@ -130,6 +162,7 @@ void pca9535_init(void)
 
 void pca9535_write_outpin(uint8_t portNum, uint8_t pinNum, uint8_t value)
 {
+    LOCK_DATA();
     uint8_t writeBuff[3] = {0x00};
 
     extio_outreg_write_bit(portNum, pinNum, value);
@@ -138,25 +171,29 @@ void pca9535_write_outpin(uint8_t portNum, uint8_t pinNum, uint8_t value)
     writeBuff[2] = extIO_OutReg[1].byte;
 
     ESP_ERROR_CHECK(i2c_master_write_to_device(I2C_MASTER_NUM, PCA9535_ADDR, writeBuff, sizeof(writeBuff), I2C_MASTER_TIMEOUT_MS / portTICK_PERIOD_MS));
+    UNLOCK_DATA();
 }
 
 void pca9535_write_outreg(uint8_t port0_Reg, uint8_t port1_Reg)
 {
+    LOCK_DATA();
     uint8_t writeBuff[3] = {0x02, port0_Reg, port1_Reg};
     extIO_OutReg[0].byte = port0_Reg;
     extIO_OutReg[1].byte = port1_Reg;
 
     ESP_ERROR_CHECK(i2c_master_write_to_device(I2C_MASTER_NUM, PCA9535_ADDR, writeBuff, sizeof(writeBuff), I2C_MASTER_TIMEOUT_MS / portTICK_PERIOD_MS));
+    UNLOCK_DATA();
 }
 
 void pca9535_read_input(void)
 {
+    LOCK_DATA();
     const uint8_t writeBuff[] = {0x00};
     uint8_t readBuff[2];
     ESP_ERROR_CHECK(i2c_master_write_read_device(I2C_MASTER_NUM, PCA9535_ADDR, writeBuff, sizeof(writeBuff), readBuff, sizeof(readBuff), I2C_MASTER_TIMEOUT_MS / portTICK_PERIOD_MS));
     extIO_InReg[0].byte = readBuff[0];
     extIO_InReg[1].byte = readBuff[1];
-
+    UNLOCK_DATA();
 #if 0
     ESP_LOGI(TAG, "输入寄存器 REG0 = 0x%02X, REG1 = 0x%02X", readBuff[0], readBuff[1]);
     ESP_LOGI(TAG, "\r\n REG0_0 = %d\r\n REG0_1 = %d\r\n REG0_2 = %d\r\n REG0_3 = %d\r\n REG0_4 = %d\r\n REG0_5 = %d\r\n REG0_6 = %d\r\n REG0_7 = %d\r\n",
@@ -188,6 +225,7 @@ void pca9535_read_input(void)
  * @return uint8_t 
  */
 uint8_t pca9535_read_inpin(uint8_t portNum, uint8_t pinNum){
+    LOCK_DATA();
     uint8_t res = 0;
 //    pca9535_read_input();
     switch (pinNum)
@@ -219,5 +257,6 @@ uint8_t pca9535_read_inpin(uint8_t portNum, uint8_t pinNum){
     default:
         break;
     }
+    UNLOCK_DATA();
     return res;
 }
