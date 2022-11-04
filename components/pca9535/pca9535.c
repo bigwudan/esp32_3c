@@ -27,11 +27,25 @@ ExtIO_Reg_Type extIO_InReg[2] = {0x00};  // 2组io
 #define I2C_MASTER_TIMEOUT_MS 1000
 
 #define INTR_IO 42
-int idx = 0;
-static void IRAM_ATTR
-gpio_isr_handler(void *arg){
-    idx++;
+
+static QueueHandle_t gpio_evt_queue = NULL;
+
+
+static void IRAM_ATTR gpio_isr_handler(void *arg){
+    uint32_t gpio_num = (uint32_t) arg;
+    xQueueSendFromISR(gpio_evt_queue, &gpio_num, NULL);    
 }
+
+uint8_t pca9535_get_intr(){
+    uint32_t io_num;
+    if(xQueueReceive(gpio_evt_queue, &io_num, 0)) {
+        pca9535_read_input();
+        return 1;
+    }else{
+        return 0;
+    }
+}
+
 
 /*
 设置中断脚
@@ -47,7 +61,8 @@ static void _set_intr(){
     gpio_install_isr_service(0);
     gpio_isr_handler_add(INTR_IO, gpio_isr_handler, (void*)INTR_IO);
 
-
+    //create a queue to handle gpio event from isr
+    gpio_evt_queue = xQueueCreate(10, sizeof(uint32_t));   
 }
 
 /**
@@ -163,7 +178,7 @@ void pca9535_read_input(void)
  */
 uint8_t pca9535_read_inpin(uint8_t portNum, uint8_t pinNum){
     uint8_t res = 0;
-    pca9535_read_input();
+    // pca9535_read_input();
     switch (pinNum)
     {
     case 0:
