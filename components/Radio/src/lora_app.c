@@ -156,8 +156,7 @@ static void _create_task();
 
 
 static void OnTxDone( void )
-{  
-    ESP_LOGI("xx", "[%s][%d]", __func__, __LINE__);     
+{   
     Radio.Standby();
     Radio.Rx( RX_TIMEOUT_VALUE ); //½øÈë½ÓÊÕ
 
@@ -169,44 +168,96 @@ static void OnRxDone( uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr 
     memcpy( RX_Buffer, payload, BufferSize );
     RssiValue = rssi;
     SnrValue = snr;
-    ESP_LOGI("xx", "[%s][%d]", __func__, __LINE__);  
+    
     Radio.Standby();
     
-    printf("lora_recv:");
-    for(int i=0; i<size; i++ ){
-        printf("[%02X]", payload[i]);
-
+    if(EnableMaster)
+    {
+      if(memcmp(RX_Buffer,PongMsg,4)==0)
+      {
+        LedToggle();//LEDÉÁË¸
+        
+      }
+     
+        TX_Buffer[0] = 'P';
+        TX_Buffer[1] = 'I';
+        TX_Buffer[2] = 'N';
+        TX_Buffer[3] = 'G'; 
+        
+        crc_value=RadioComputeCRC(TX_Buffer,4,CRC_TYPE_IBM);//¼ÆËãµÃ³öÒª·¢ËÍÊý¾Ý°üCRCÖµ
+        TX_Buffer[4]=crc_value>>8;
+        TX_Buffer[5]=crc_value;
+        Radio.Send( TX_Buffer, 6);
     }
-    printf("\n");
-
-    TX_Buffer[0] = 'P';
-    TX_Buffer[1] = 'I';
-    TX_Buffer[2] = 'N';
-    TX_Buffer[3] = 'G'; 
-    
-    crc_value=RadioComputeCRC(TX_Buffer,4,CRC_TYPE_IBM);//¼ÆËãµÃ³öÒª·¢ËÍÊý¾Ý°üCRCÖµ
-    TX_Buffer[4]=crc_value>>8;
-    TX_Buffer[5]=crc_value;
-    Radio.Send( TX_Buffer, 6);
-
-
-  
+    else
+    {
+      if(memcmp(RX_Buffer,PingMsg,4)==0)
+      {
+        LedToggle();//LEDÉÁË¸
+        
+        TX_Buffer[0] = 'P';
+        TX_Buffer[1] = 'O';
+        TX_Buffer[2] = 'N';
+        TX_Buffer[3] = 'G'; 
+        
+        crc_value=RadioComputeCRC(TX_Buffer,4,CRC_TYPE_IBM);//¼ÆËãµÃ³öÒª·¢ËÍÊý¾Ý°üCRCÖµ
+        TX_Buffer[4]=crc_value>>8;
+        TX_Buffer[5]=crc_value;
+        Radio.Send( TX_Buffer, 6);
+      }
+      else
+      {
+        Radio.Rx( RX_TIMEOUT_VALUE ); 
+      }   
+    }
 }
 
 static void OnTxTimeout( void )
 {
-   ESP_LOGI("xx", "[%s][%d]", __func__, __LINE__);
+   
 }
 
 static void OnRxTimeout( void )
 {
-    ESP_LOGI("xx", "[%s][%d]", __func__, __LINE__); 
+    Radio.Standby();
+    if(EnableMaster)
+    {
+        TX_Buffer[0] = 'P';
+        TX_Buffer[1] = 'I';
+        TX_Buffer[2] = 'N';
+        TX_Buffer[3] = 'G'; 
+        
+        crc_value=RadioComputeCRC(TX_Buffer,4,CRC_TYPE_IBM);//¼ÆËãµÃ³öÒª·¢ËÍÊý¾Ý°üCRCÖµ
+        TX_Buffer[4]=crc_value>>8;
+        TX_Buffer[5]=crc_value;
+        Radio.Send( TX_Buffer, 6);
+    }
+    else
+    {
+      Radio.Rx( RX_TIMEOUT_VALUE ); 
+    }
 }
 
 static void OnRxError( void )
 {
-    //printf("[%s][%d]\n", );
-    ESP_LOGI("xx", "[%s][%d]", __func__, __LINE__);
+
+    Radio.Standby();
+    if(EnableMaster)
+    {
+        TX_Buffer[0] = 'P';
+        TX_Buffer[1] = 'I';
+        TX_Buffer[2] = 'N';
+        TX_Buffer[3] = 'G'; 
+        
+        crc_value=RadioComputeCRC(TX_Buffer,4,CRC_TYPE_IBM);//¼ÆËãµÃ³öÒª·¢ËÍÊý¾Ý°üCRCÖµ
+        TX_Buffer[4]=crc_value>>8;
+        TX_Buffer[5]=crc_value;
+        Radio.Send( TX_Buffer, 6);
+    }
+    else
+    {
+      Radio.Rx( RX_TIMEOUT_VALUE ); 
+    }
   
 }
 
@@ -330,7 +381,7 @@ void lora_app_init(){
     Radio.SetRxConfig( MODEM_LORA, LORA_BANDWIDTH, LORA_SPREADING_FACTOR,
                                    LORA_CODINGRATE, 0, LORA_PREAMBLE_LENGTH,
                                    LORA_SYMBOL_TIMEOUT, LORA_FIX_LENGTH_PAYLOAD_ON,
-                                   0, true, 0, 0, LORA_IQ_INVERSION_ON, true );
+                                   0, true, 0, 0, LORA_IQ_INVERSION_ON, false );
     
 #elif defined( USE_MODEM_FSK )
     
@@ -352,7 +403,25 @@ void lora_app_init(){
 
 
 void lora_app_set_pingpong(){
-    Radio.Rx( RX_TIMEOUT_VALUE ); 
+    if(EnableMaster)
+    {
+          TX_Buffer[0] = 'P';
+          TX_Buffer[1] = 'I';
+          TX_Buffer[2] = 'N';
+          TX_Buffer[3] = 'G'; 
+          
+          crc_value=RadioComputeCRC(TX_Buffer,4,CRC_TYPE_IBM);//¼ÆËãµÃ³öÒª·¢ËÍÊý¾Ý°üCRCÖµ
+          TX_Buffer[4]=crc_value>>8;
+          TX_Buffer[5]=crc_value;
+          Radio.Send( TX_Buffer, 6);
+    }
+    else
+    {
+       Radio.Rx( RX_TIMEOUT_VALUE ); 
+    }
+
+
+
 }
 
 void lora_app_process(){
