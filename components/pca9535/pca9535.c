@@ -65,7 +65,7 @@ void pca9535_init(void)
     //输入输出设置
     // IO_0 = 0001 1111  0x1F
     // IO_1 = 0110 0000  0x00
-    static const uint8_t pca9535_setbuff[3] = {0x06, 0x1F, 0x60};
+    uint8_t pca9535_setbuff[3] = {0x06, 0x1F, 0x60};
 
     i2c_master_init();
     
@@ -75,6 +75,14 @@ void pca9535_init(void)
 
     ESP_ERROR_CHECK(i2c_master_write_to_device(I2C_MASTER_NUM, PCA9535_ADDR, pca9535_setbuff, sizeof(pca9535_setbuff), I2C_MASTER_TIMEOUT_MS / portTICK_PERIOD_MS));
 
+
+    extIO_OutReg[0].byte = 0xE0;
+    extIO_OutReg[1].byte = 0x19;
+
+    pca9535_setbuff[0] = 0x02;
+    pca9535_setbuff[1] = extIO_OutReg[0].byte;
+    pca9535_setbuff[2] = extIO_OutReg[1].byte;
+    ESP_ERROR_CHECK(i2c_master_write_to_device(I2C_MASTER_NUM, PCA9535_ADDR, pca9535_setbuff, sizeof(pca9535_setbuff), I2C_MASTER_TIMEOUT_MS / portTICK_PERIOD_MS));
 
 }
 

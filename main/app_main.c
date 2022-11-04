@@ -197,9 +197,8 @@ void app_main(void)
     lora_app_set_pingpong();
 
     while (1) {
-        vTaskDelay(pdMS_TO_TICKS(100));
+        vTaskDelay(pdMS_TO_TICKS(5));
         lcd_dev_task();
-        pcf8563_read_time();
         lora_app_process();
     }
 #else
