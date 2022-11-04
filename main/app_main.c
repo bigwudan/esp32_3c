@@ -195,11 +195,12 @@ void app_main(void)
 
     lora_app_init();
     lora_app_set_pingpong();
-
+extern int idx;
     while (1) {
         vTaskDelay(pdMS_TO_TICKS(5));
         lcd_dev_task();
         lora_app_process();
+        ESP_LOGI(TAG, "inr[%d]", idx);
     }
 #else
 

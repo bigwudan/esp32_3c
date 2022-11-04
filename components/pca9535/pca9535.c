@@ -26,6 +26,30 @@ ExtIO_Reg_Type extIO_InReg[2] = {0x00};  // 2组io
 #define I2C_MASTER_RX_BUF_DISABLE 0 /*!< I2C master doesn't need buffer */
 #define I2C_MASTER_TIMEOUT_MS 1000
 
+#define INTR_IO 42
+int idx = 0;
+static void IRAM_ATTR
+gpio_isr_handler(void *arg){
+    idx++;
+}
+
+/*
+设置中断脚
+*/
+static void _set_intr(){
+
+    gpio_config_t io_conf = {};
+    io_conf.intr_type = GPIO_INTR_NEGEDGE;
+    io_conf.pin_bit_mask = 1ULL <<INTR_IO ;
+    io_conf.mode = GPIO_MODE_INPUT;
+    io_conf.pull_up_en = 0;
+    gpio_config(&io_conf);
+    gpio_install_isr_service(0);
+    gpio_isr_handler_add(INTR_IO, gpio_isr_handler, (void*)INTR_IO);
+
+
+}
+
 /**
  * @brief i2c master initialization
  */
@@ -83,7 +107,7 @@ void pca9535_init(void)
     pca9535_setbuff[1] = extIO_OutReg[0].byte;
     pca9535_setbuff[2] = extIO_OutReg[1].byte;
     ESP_ERROR_CHECK(i2c_master_write_to_device(I2C_MASTER_NUM, PCA9535_ADDR, pca9535_setbuff, sizeof(pca9535_setbuff), I2C_MASTER_TIMEOUT_MS / portTICK_PERIOD_MS));
-
+    _set_intr();
 }
 
 void pca9535_write_outpin(uint8_t portNum, uint8_t pinNum, uint8_t value)
