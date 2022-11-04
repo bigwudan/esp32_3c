@@ -21,7 +21,7 @@
 #include "driver/gpio.h"
 #include "driver/i2c.h"
 #include "lcd_dev.h"
-#include "pca9535.h"
+
 
 //tp i2c
 #define I2C_MASTER_INT_IO           17
@@ -133,10 +133,7 @@ void lcd_dev_tp_scan_tp(){
     uint16_t x_pos = 0;
     uint16_t y_pos = 0;
     uint8_t read_buf[8] = {0};
-
-
-
-    
+    i2c_register_read(FT_REG_NUM_FINGER, read_buf, 1);
 
 #if 0    
     if(gpio_get_level(I2C_MASTER_INT_IO) == 0){
@@ -163,28 +160,21 @@ void lcd_dev_tp_scan_tp(){
     }
 #else
 
-#define PCA_PORT 0
-#define PCA_IO 4
-    if(pca9535_read_inpin(PCA_PORT, PCA_IO) == 0){
-        i2c_register_read(FT_REG_NUM_FINGER, read_buf, 1); 
-        if(read_buf[0] == 1){
-            i2c_register_read(FT_TP1_REG, read_buf, 4);
-            if((read_buf[0]&0X80)!=0X80) return;
-            x_pos=((uint16_t)(read_buf[0]&0X0F)<<8)+read_buf[1];
-            y_pos=((uint16_t)(read_buf[2]&0X0F)<<8)+read_buf[3];
-            
-            tp_data.x_pos = x_pos;
-            tp_data.y_pos = y_pos;
-            tp_data.press_state = 1;
-        }else{
-            tp_data.x_pos = 0;
-            tp_data.y_pos = 0;
-            tp_data.press_state = 0;
-
-        }        
+    if(read_buf[0] == 1){
+        i2c_register_read(FT_TP1_REG, read_buf, 4);
+        if((read_buf[0]&0X80)!=0X80) return;
+        x_pos=((uint16_t)(read_buf[0]&0X0F)<<8)+read_buf[1];
+        y_pos=((uint16_t)(read_buf[2]&0X0F)<<8)+read_buf[3];
+        
+        tp_data.x_pos = x_pos;
+        tp_data.y_pos = y_pos;
+        tp_data.press_state = 1;
+    }else{
+        tp_data.x_pos = 0;
+        tp_data.y_pos = 0;
+        tp_data.press_state = 0;
 
     }
-
 
 
 #endif

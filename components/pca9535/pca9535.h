@@ -37,6 +37,4 @@ void pca9535_init(void);
  * @return uint8_t 
  */
 uint8_t pca9535_read_inpin(uint8_t portNum, uint8_t pinNum);
-
-uint8_t pca9535_get_intr();
 #endif
