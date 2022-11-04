@@ -182,18 +182,14 @@ void app_main(void)
 
 #if 1   
     pca9535_init(); 
+    
     // wifi_mod_start();
 
     // bluetooth_app();
-
-
-
     spi_driver_init();
-
-
     lcd_dev_init();
 
-    lora_app_init();
+    //lora_app_init();
     lora_app_set_pingpong();
 extern int idx;
     while (1) {
