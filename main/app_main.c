@@ -189,7 +189,7 @@ void app_main(void)
     spi_driver_init();
     lcd_dev_init();
 
-    //lora_app_init();
+    lora_app_init();
     lora_app_set_pingpong();
 
     while (1) {
