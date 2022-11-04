@@ -193,7 +193,7 @@ void app_main(void)
     lora_app_set_pingpong();
 
     while (1) {
-        pca9535_get_intr();
+        //pca9535_get_intr();
         
         lcd_dev_task();
         lora_app_process();

@@ -21,7 +21,7 @@ ExtIO_Reg_Type extIO_InReg[2] = {0x00};  // 2组io
 #define I2C_MASTER_SCL_IO 2         /*!< GPIO number used for I2C master clock */
 #define I2C_MASTER_SDA_IO 1         /*!< GPIO number used for I2C master data  */
 #define I2C_MASTER_NUM 0            /*!< I2C master i2c port number, the number of i2c peripheral interfaces available will depend on the chip */
-#define I2C_MASTER_FREQ_HZ 100000   /*!< I2C master clock frequency */
+#define I2C_MASTER_FREQ_HZ 50000   /*!< I2C master clock frequency 100000 */ 
 #define I2C_MASTER_TX_BUF_DISABLE 0 /*!< I2C master doesn't need buffer */
 #define I2C_MASTER_RX_BUF_DISABLE 0 /*!< I2C master doesn't need buffer */
 #define I2C_MASTER_TIMEOUT_MS 1000
@@ -46,7 +46,17 @@ uint8_t pca9535_get_intr(){
     }
 }
 
+static void _pca9535_inr(void *aContext){
+    uint32_t io_num;
+    while(1){
+        if(xQueueReceive(gpio_evt_queue, &io_num, portMAX_DELAY)) {
+            pca9535_read_input();
+        }
 
+    }
+
+
+}
 /*
 设置中断脚
 */
@@ -62,7 +72,8 @@ static void _set_intr(){
     gpio_isr_handler_add(INTR_IO, gpio_isr_handler, (void*)INTR_IO);
 
     //create a queue to handle gpio event from isr
-    gpio_evt_queue = xQueueCreate(10, sizeof(uint32_t));   
+    gpio_evt_queue = xQueueCreate(10, sizeof(uint32_t)); 
+    xTaskCreate(_pca9535_inr, "pca9535", 4096, xTaskGetCurrentTaskHandle(), 1, NULL);  
 }
 
 /**
@@ -178,7 +189,7 @@ void pca9535_read_input(void)
  */
 uint8_t pca9535_read_inpin(uint8_t portNum, uint8_t pinNum){
     uint8_t res = 0;
-    pca9535_read_input();
+//    pca9535_read_input();
     switch (pinNum)
     {
     case 0:
