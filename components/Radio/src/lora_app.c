@@ -179,10 +179,10 @@ static void OnRxDone( uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr 
     }
     printf("\n");
 
-    TX_Buffer[0] = 'P';
+    TX_Buffer[0] = 0x55;
     TX_Buffer[1] = 'I';
-    TX_Buffer[2] = 'N';
-    TX_Buffer[3] = 'G'; 
+    TX_Buffer[2] = 0x00;
+    TX_Buffer[3] = payload[3]; 
     
     crc_value=RadioComputeCRC(TX_Buffer,4,CRC_TYPE_IBM);//¼ÆËãµÃ³öÒª·¢ËÍÊý¾Ý°üCRCÖµ
     TX_Buffer[4]=crc_value>>8;
