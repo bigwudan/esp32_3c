@@ -7,531 +7,381 @@
    CONDITIONS OF ANY KIND, either express or implied.
 */
 #include <stdio.h>
+#include "sdkconfig.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-
-//spi lcd
-#include "driver/spi_master.h"
+#include "freertos/semphr.h"
+#include "esp_timer.h"
+#include "esp_lcd_panel_ops.h"
+#include "esp_lcd_panel_rgb.h"
 #include "driver/gpio.h"
-#include <string.h>
+#include "esp_err.h"
+#include "esp_log.h"
+#include "lvgl.h"
+#include "driver/gpio.h"
+#include "driver/i2c.h"
 #include "lcd_dev.h"
-#define USE_HORIZONTAL 1
 
-#define TFT_WRITE_COMMAND(A) lcd_cmd(A)
-#define TFT_WRITE_DATA(A) 	lcd_data(A)
-
-
-
-
-
-#define SDA 7
-#define SCK 6
-#define CS 10
-#define IO_CD 4
-#define IO_BL 3
-#define IO_RESET 5
-
-
-#define delay_lcd(A) do{vTaskDelay((A) / portTICK_PERIOD_MS);}while(0)
-
-
-
-
- typedef struct
- {
- 	uint16_t width;
- 	uint16_t height;
- 	uint16_t id;
- 	uint8_t  dir;
- 	uint16_t	 wramcmd;
- 	uint16_t  setxcmd;
- 	uint16_t setycmd;
- 	uint8_t   xoffset;
- 	uint8_t	 yoffset;
- }_lcd_dev;
-
-_lcd_dev  lcddev;
-static spi_device_handle_t spi; 
-
-static void IRAM_ATTR spi_ready(spi_transaction_t *trans){
-
-
-
-}
-
-
-static const spi_bus_config_t buscfg = {
-.miso_io_num = -1,
-.mosi_io_num = SDA,
-.sclk_io_num = SCK,
-.quadhd_io_num = -1,
-.quadwp_io_num = -1,
-.max_transfer_sz = SPI_SPEED_BUF_NUM
-};
-
-static const spi_device_interface_config_t devcfg = {
-.clock_speed_hz = SPI_MASTER_FREQ_80M,
-.mode = 0,
-.spics_io_num =CS,
-.queue_size = 7,
-.cs_ena_pretrans = 10,
-.post_cb = spi_ready
-
-
-};
-
-
-//IO口初始化
-static int _vspi_init(){
-	esp_err_t err;
-
-
-	//command/data
-	gpio_pad_select_gpio(IO_CD);
-	gpio_set_direction(IO_CD, GPIO_MODE_OUTPUT);
-
-
-	
-	gpio_pad_select_gpio(IO_BL);
-	gpio_set_direction(IO_BL, GPIO_MODE_OUTPUT);
-	gpio_set_level(IO_BL, 1);
-
-	
-	gpio_pad_select_gpio(IO_RESET);
-	gpio_set_direction(IO_RESET, GPIO_MODE_OUTPUT);
-	gpio_set_level(IO_RESET, 1);
-
-	err = spi_bus_initialize(SPI2_HOST, &buscfg, SPI_DMA_CH_AUTO);
-
-	if(err != ESP_OK){
-		return -1;
-
-	}
-
-	err = spi_bus_add_device(SPI2_HOST, &devcfg, &spi);
-
-	if(err != ESP_OK){
-		return -1;
-
-	}
-	return 0;
-}
-
-
-//
-int lcd_cmd(const uint8_t cmd){
-	esp_err_t ret;
-	spi_transaction_t t;
-	memset(&t, 0, sizeof(t));
-	t.length = 8;
-	t.tx_buffer = &cmd;
-	t.user = (void*)0;
-	gpio_set_level(IO_CD, 0);
-	ret = spi_device_polling_transmit(spi, &t);
-	if(ret != ESP_OK){
-		printf("*********lcd_cmd err************\n");
-
-
-	}
-	//assert(ret == ESP_OK);
-	return ret;
-}
-
-//
-int lcd_data(const uint8_t cmd){
-	esp_err_t ret;
-	spi_transaction_t t;
-	memset(&t, 0, sizeof(t));
-	t.length = 8;
-	t.tx_buffer = &cmd;
-	t.user = (void*)0;
-	gpio_set_level(IO_CD, 1);
-	ret = spi_device_polling_transmit(spi, &t);
-	if(ret != ESP_OK){
-		printf("*********lcd_cmd err************\n");
-
-
-	}
-	//assert(ret == ESP_OK);
-	return ret;
-}
-
-
-//
-int lcd_16_data(const uint8_t *cmd){
-	esp_err_t ret;
-	spi_transaction_t t;
-	memset(&t, 0, sizeof(t));
-	t.length = 16;
-	t.tx_buffer = cmd;
-	t.user = (void*)0;
-	gpio_set_level(IO_CD, 1);
-	ret = spi_device_polling_transmit(spi, &t);
-	if(ret != ESP_OK){
-		printf("*********lcd_cmd err************\n");
-
-
-	}
-	//assert(ret == ESP_OK);
-	return ret;
-
-
-}
-
-int lcd_spi_data_by_num(const uint8_t *cmd, uint32_t len){
-	esp_err_t ret;
-	spi_transaction_t t;
-	memset(&t, 0, sizeof(t));
-	t.length = len*8;
-	t.tx_buffer = cmd;
-	t.user = (void*)0;
-	gpio_set_level(IO_CD, 1);
-
-
-
-	ret = spi_device_polling_transmit(spi, &t);
-	if(ret != ESP_OK){
-		printf("*********lcd_cmd err************\n");
-
-
-	}
-	//assert(ret == ESP_OK);
-	return ret;
-
-
-}
-
-
-
-static void _096lcd(){
-
-
-	gpio_set_level(IO_RESET, 1);
-    //vTaskDelay(200 / portTICK_PERIOD_MS);
-    delay_lcd(200);
-
-	gpio_set_level(IO_RESET, 0);
-    delay_lcd(800);
-
-    gpio_set_level(IO_RESET, 1);
-    delay_lcd(800);
-
-delay_lcd(120);                //ms
-
-TFT_WRITE_COMMAND(0x11);     //Sleep out
-
-delay_lcd(120);                //Delay 120ms
-
-TFT_WRITE_COMMAND(0x36);     
-TFT_WRITE_DATA(0x00);   
-
-TFT_WRITE_COMMAND(0x21);     
-
-TFT_WRITE_COMMAND(0xB2);     
-TFT_WRITE_DATA(0x05);   
-TFT_WRITE_DATA(0x05);   
-TFT_WRITE_DATA(0x00);   
-TFT_WRITE_DATA(0x33);   
-TFT_WRITE_DATA(0x33);   
-
-TFT_WRITE_COMMAND(0xB7);     
-TFT_WRITE_DATA(0x75);   
-
-TFT_WRITE_COMMAND(0xBB);     
-TFT_WRITE_DATA(0x22);   
-
-TFT_WRITE_COMMAND(0xC0);     
-TFT_WRITE_DATA(0x2C);   
-
-TFT_WRITE_COMMAND(0xC2);     
-TFT_WRITE_DATA(0x01);   
-
-TFT_WRITE_COMMAND(0xC3);     
-TFT_WRITE_DATA(0x13);   
-
-TFT_WRITE_COMMAND(0xC4);     
-TFT_WRITE_DATA(0x20);   
-
-TFT_WRITE_COMMAND(0xC6);     
-TFT_WRITE_DATA(0x11);   
-
-TFT_WRITE_COMMAND(0xD0);     
-TFT_WRITE_DATA(0xA4);   
-TFT_WRITE_DATA(0xA1);   
-
-TFT_WRITE_COMMAND(0xD6);     
-TFT_WRITE_DATA(0xA1);   
-
-TFT_WRITE_COMMAND(0xE0);     
-TFT_WRITE_DATA(0xD0);   
-TFT_WRITE_DATA(0x05);   
-TFT_WRITE_DATA(0x0A);   
-TFT_WRITE_DATA(0x09);   
-TFT_WRITE_DATA(0x08);   
-TFT_WRITE_DATA(0x05);   
-TFT_WRITE_DATA(0x2E);   
-TFT_WRITE_DATA(0x44);   
-TFT_WRITE_DATA(0x45);   
-TFT_WRITE_DATA(0x0F);   
-TFT_WRITE_DATA(0x17);   
-TFT_WRITE_DATA(0x16);   
-TFT_WRITE_DATA(0x2B);   
-TFT_WRITE_DATA(0x33);   
-
-TFT_WRITE_COMMAND(0xE1);     
-TFT_WRITE_DATA(0xD0);   
-TFT_WRITE_DATA(0x05);   
-TFT_WRITE_DATA(0x0A);   
-TFT_WRITE_DATA(0x09);   
-TFT_WRITE_DATA(0x08);   
-TFT_WRITE_DATA(0x05);   
-TFT_WRITE_DATA(0x2E);   
-TFT_WRITE_DATA(0x43);   
-TFT_WRITE_DATA(0x45);   
-TFT_WRITE_DATA(0x0F);   
-TFT_WRITE_DATA(0x16);   
-TFT_WRITE_DATA(0x16);   
-TFT_WRITE_DATA(0x2B);   
-TFT_WRITE_DATA(0x33);   
-
-TFT_WRITE_COMMAND(0x3A);     
-TFT_WRITE_DATA(0x55);
-
-TFT_WRITE_COMMAND(0x29);     //Display on
-TFT_WRITE_COMMAND(0x2C);            //Delay 120ms
-
-}
-
-
-static void _096lcd_bk(){
-	TFT_WRITE_COMMAND(0x11);//Sleep exit
-	vTaskDelay(120 / portTICK_PERIOD_MS);
-
-	TFT_WRITE_COMMAND(0xB1); //֡��
-	TFT_WRITE_DATA(0x05);
-	TFT_WRITE_DATA( 0x3A);
-	TFT_WRITE_DATA( 0x3A);
-
-	TFT_WRITE_COMMAND(0xB2); //֡��
-	TFT_WRITE_DATA(0x05);
-	TFT_WRITE_DATA(0x3A);
-	TFT_WRITE_DATA(0x3A);
-
-     TFT_WRITE_COMMAND(0xB3); //֡��
-     TFT_WRITE_DATA(0x05);
-     TFT_WRITE_DATA(0x3A);
-     TFT_WRITE_DATA(0x3A);
-     TFT_WRITE_DATA(0x05);
-     TFT_WRITE_DATA( 0x3A);
-     TFT_WRITE_DATA( 0x3A);
-
-     TFT_WRITE_COMMAND(0x21); //������(�õ��ǵ��ԵĻ����Լ�ת����RGB565���Կ�����)
-     TFT_WRITE_COMMAND( 0xB4); //����control
-     TFT_WRITE_DATA( 0x03);
-
-     TFT_WRITE_COMMAND( 0xC0); //���� control
-     TFT_WRITE_DATA(0x62);
-     TFT_WRITE_DATA( 0x02);
-     TFT_WRITE_DATA( 0x04);
-
-     TFT_WRITE_COMMAND(0xC1);
-     TFT_WRITE_DATA( 0xC0);
-
-     TFT_WRITE_COMMAND( 0xC2);
-     TFT_WRITE_DATA( 0x0D);
-     TFT_WRITE_DATA( 0x00);
-
-     TFT_WRITE_COMMAND(0xC3);
-     TFT_WRITE_DATA( 0x8D);
-     TFT_WRITE_DATA( 0x6A);
-
-     TFT_WRITE_COMMAND(0xC4);
-     TFT_WRITE_DATA( 0x8D);
-     TFT_WRITE_DATA( 0x6A);
-
-     TFT_WRITE_COMMAND(0xC5); //VCOM
-     TFT_WRITE_DATA(0x0E);
-
-     TFT_WRITE_COMMAND( 0xE0);
-     TFT_WRITE_DATA( 0x10);
-     TFT_WRITE_DATA( 0x0E);
-     TFT_WRITE_DATA( 0x02);
-     TFT_WRITE_DATA( 0x03);
-     TFT_WRITE_DATA( 0x0E);
-     TFT_WRITE_DATA(0x07);
-     TFT_WRITE_DATA( 0x02);
-     TFT_WRITE_DATA(0x07);
-     TFT_WRITE_DATA(0x0A);
-     TFT_WRITE_DATA( 0x12);
-     TFT_WRITE_DATA(0x27);
-     TFT_WRITE_DATA(0x37);
-     TFT_WRITE_DATA(0x00);
-     TFT_WRITE_DATA(0x0D);
-     TFT_WRITE_DATA( 0x0E);
-     TFT_WRITE_DATA(0x10);
-
-     TFT_WRITE_COMMAND( 0xE1);
-     TFT_WRITE_DATA( 0x10);
-     TFT_WRITE_DATA( 0x0E);
-     TFT_WRITE_DATA(0x03);
-     TFT_WRITE_DATA( 0x03);
-     TFT_WRITE_DATA( 0x0F);
-     TFT_WRITE_DATA( 0x06);
-     TFT_WRITE_DATA( 0x02);
-     TFT_WRITE_DATA( 0x08);
-     TFT_WRITE_DATA( 0x0A);
-     TFT_WRITE_DATA(0x13);
-     TFT_WRITE_DATA(0x26);
-     TFT_WRITE_DATA( 0x36);
-     TFT_WRITE_DATA(0x00);
-     TFT_WRITE_DATA(0x0D);
-     TFT_WRITE_DATA( 0x0E);
-     TFT_WRITE_DATA( 0x10);
-
-     TFT_WRITE_COMMAND( 0x3A); //
-     TFT_WRITE_DATA( 0x05);
-
-     TFT_WRITE_COMMAND( 0x36); //
-     TFT_WRITE_DATA(0x78);
-
-     TFT_WRITE_COMMAND(0x13); //
-
-     // LCD_SendCmd(hspi, 0xB4); //
-     // LCD_SendDat(hspi, 0x00);
-     TFT_WRITE_COMMAND( 0x29); //display on
-    // LCD_BLK_1();
-
- 	gpio_set_level(IO_BL, 1);
-}
-
-
-
-
-
-
-//
-void Lcd_SetPosPort( uint16_t x_start, uint16_t y_start, uint16_t x_end, uint16_t y_end)
+#include "driver/ledc.h"
+
+//bk
+#define LEDC_TIMER              LEDC_TIMER_0
+#define LEDC_MODE               LEDC_LOW_SPEED_MODE
+
+#define LEDC_CHANNEL            LEDC_CHANNEL_0
+#define LEDC_DUTY_RES           LEDC_TIMER_13_BIT // Set duty resolution to 13 bits
+#define LEDC_DUTY               (6552) // Set duty to 50%. ((2 ** 13) - 1) * 50% = 4095 //2** 13 = 8192  819
+#define LEDC_FREQUENCY          (1000) // Frequency in Hertz. Set frequency at 5 kHz
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////// Please update the following configuration according to your LCD spec //////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+#define RGB_LCD_PIXEL_CLOCK_HZ     (18 * 1000 * 1000)
+#define RGB_LCD_BK_LIGHT_ON_LEVEL  1
+#define RGB_LCD_BK_LIGHT_OFF_LEVEL !RGB_LCD_BK_LIGHT_ON_LEVEL
+#define RGB_PIN_NUM_BK_LIGHT       4
+#define RGB_PIN_NUM_HSYNC          46
+#define RGB_PIN_NUM_VSYNC          3
+#define RGB_PIN_NUM_DE             0
+#define RGB_PIN_NUM_PCLK           9
+#define RGB_PIN_NUM_DATA0          14 // B0
+#define RGB_PIN_NUM_DATA1          13 // B1
+#define RGB_PIN_NUM_DATA2          12 // B2
+#define RGB_PIN_NUM_DATA3          11 // B3
+#define RGB_PIN_NUM_DATA4          10 // B4
+#define RGB_PIN_NUM_DATA5          39 // G0
+#define RGB_PIN_NUM_DATA6          38 // G1
+#define RGB_PIN_NUM_DATA7          45 // G2
+#define RGB_PIN_NUM_DATA8          48 // G3
+#define RGB_PIN_NUM_DATA9          47 // G4
+#define RGB_PIN_NUM_DATA10         21 // G5
+#define RGB_PIN_NUM_DATA11         1  // R0
+#define RGB_PIN_NUM_DATA12         2  // R1
+#define RGB_PIN_NUM_DATA13         42 // R2
+#define RGB_PIN_NUM_DATA14         41 // R3
+#define RGB_PIN_NUM_DATA15         40 // R4
+#define RGB_PIN_NUM_DISP_EN        -1
+
+// The pixel number in horizontal and vertical
+#define RGB_LCD_H_RES              480
+#define RGB_LCD_V_RES              480
+
+#define LVGL_TICK_PERIOD_MS    2
+
+
+static const char *TAG = "lcd_dev";
+
+esp_lcd_panel_handle_t panel_handle = NULL;
+
+static void _increase_lvgl_tick(void *arg)
 {
-    int i = 0;
-    y_start +=i;
-    y_end +=i;
-	TFT_WRITE_COMMAND(0x2A);
-	TFT_WRITE_DATA((uint8_t)(x_start >> 8));
-	TFT_WRITE_DATA((uint8_t)x_start); //1~160����0~159   ʵ�ʴ����Ĳ�����0~159
-	TFT_WRITE_DATA((uint8_t)(x_end >> 8));
-	TFT_WRITE_DATA((uint8_t)x_end);
-
-    TFT_WRITE_COMMAND(0x2B);
-    TFT_WRITE_DATA((uint8_t)(y_start >> 8));
-    TFT_WRITE_DATA((uint8_t)(y_start)); //���26��Ӳ���й�
-    TFT_WRITE_DATA((uint8_t)(y_end >> 8));
-    TFT_WRITE_DATA((uint8_t)(y_end));
-    TFT_WRITE_COMMAND(0x2C);
+    lv_tick_inc(LVGL_TICK_PERIOD_MS);
 }
 
-//
-static void LCD_SendPointPort(uint16_t Color)
+static void _lvgl_flush_cb(lv_disp_drv_t *drv, const lv_area_t *area, lv_color_t *color_map)
 {
-    uint8_t Dat[2] = {0};
-    Dat[0] = Color >> 4 & 0xFF;
-    Dat[1] = Color & 0x00FF;
-#if 1
-    {
-    	lcd_16_data(Dat);
- //   	TFT_WRITE_DATA(Dat[0]);
- //   	TFT_WRITE_DATA(Dat[1]);
+
+    esp_lcd_panel_handle_t panel_handle = (esp_lcd_panel_handle_t) drv->user_data;
+    int offsetx1 = area->x1;
+    int offsetx2 = area->x2;
+    int offsety1 = area->y1;
+    int offsety2 = area->y2;
+
+    // pass the draw buffer to the driver
+    esp_lcd_panel_draw_bitmap(panel_handle, offsetx1, offsety1, offsetx2 + 1, offsety2 + 1, color_map);
+    lv_disp_flush_ready(drv);
+}
+
+static void event_cb(lv_event_t * e)
+{
+    lv_event_code_t code = lv_event_get_code(e);    // 获取当前部件(对象)触发的事件代码
+    lv_obj_t * label = lv_event_get_user_data(e);    // 读取到标签对象
+    static uint32_t idx = 0;
+    switch(code) {
+    case LV_EVENT_PRESSED:    // 按下
+        lv_label_set_text(label, "The last button event:\nLV_EVENT_PRESSED");
+        break;
+    case LV_EVENT_CLICKED:    // 按下且松开
+        lv_label_set_text(label, "The last button event:\nLV_EVENT_CLICKED");
+        
+        switch (idx%10)
+        {
+        case 0:
+            lcd_dev_set_bklight(5);
+            break;
+        case 1:
+            lcd_dev_set_bklight(10);
+            break;  
+        case 3:
+            lcd_dev_set_bklight(15);
+            break;   
+        case 4:
+            lcd_dev_set_bklight(20);
+            break; 
+        case 5:
+            lcd_dev_set_bklight(25);
+            break;
+        case 6:
+            lcd_dev_set_bklight(30);
+            break;
+        case 7:
+            lcd_dev_set_bklight(35);
+            break;  
+        case 8:
+            lcd_dev_set_bklight(40);
+            break;   
+        case 9:
+            lcd_dev_set_bklight(45);
+            break; 
+        case 10:
+            lcd_dev_set_bklight(100);
+            break;                                                     
+        default:
+            break;
+        }
+        idx++;
+        break;
+    case LV_EVENT_LONG_PRESSED:    // 按下指定多少时间
+        lv_label_set_text(label, "The last button event:\nLV_EVENT_LONG_PRESSED");
+        break;
+    case LV_EVENT_LONG_PRESSED_REPEAT:    // 类似上面但又不同
+        lv_label_set_text(label, "The last button event:\nLV_EVENT_LONG_PRESSED_REPEAT");
+        break;
+    default:
+        break;
     }
-#else
-    {
-        LCD_Dat();
-        LCD_CS_0();
-        HAL_SPI_Transmit(&hspi, Dat, 2, 0xfff);
-        LCD_CS_1();
-    }
+}
+
+void example_lvgl_demo_ui()
+{
+#if 1    
+  /*Create an Arc*/
+  lv_obj_t * arc = lv_arc_create(lv_scr_act());
+  lv_obj_set_size(arc, 150, 150);
+  lv_arc_set_rotation(arc, 135);
+  lv_arc_set_bg_angles(arc, 0, 270);
+  lv_arc_set_value(arc, 40);
+  lv_obj_center(arc);
+#endif
+#if 0
+    lv_obj_t * btn = lv_btn_create(lv_scr_act());    // 创建按钮对象
+    lv_obj_set_size(btn, 400, 200);
+    lv_obj_center(btn);
+
+    lv_obj_t * btn_label = lv_label_create(btn);     // 创建标签
+    lv_label_set_text(btn_label, "Click me!");
+    lv_obj_center(btn_label);
+
+    lv_obj_t * info_label = lv_label_create(lv_scr_act());    //创建标签
+    lv_label_set_text(info_label, "The last button event:\nNone");
+
+    lv_obj_add_event_cb(btn, event_cb, LV_EVENT_ALL, info_label);    // btn的事件，并传入标签对象
+#endif 
+#if 0    
+    lv_obj_t * img_obj ;
+    LV_IMG_DECLARE(test_img_3);
+    img_obj = lv_img_create(lv_scr_act());
+    lv_img_set_src(img_obj, &test_img_3);
 #endif
 }
 
 
-//
-void Lcd_ClearPort( uint16_t Color)
+static void _lvgl_touch_cb(lv_indev_drv_t * drv, lv_indev_data_t * data)
 {
-    uint16_t i;
-    uint16_t x_end = 100;
-    uint16_t y_end = 100;
-    //Lcd_SetPosPort( 0, 0, X_MAX_PIXEL, Y_MAX_PIXEL);
-    Lcd_SetPosPort( 0, 0, x_end, y_end);
-#if 1 
-    for (i = 0; i < x_end*y_end; i++)
-    {
-    	//lcd_16_data(Color);
-    	LCD_SendPointPort(Color);
+    tp_data_tag *tp_data_info = lcd_dev_tp_get_data();
+    if (tp_data_info->press_state == 1) {
+        data->point.x = tp_data_info->x_pos;
+        data->point.y = tp_data_info->y_pos;
+        data->state = LV_INDEV_STATE_PRESSED;
+        
+    } else {
+        data->state = LV_INDEV_STATE_RELEASED;
+       
     }
+}
 
-#else 
-    for (i = 0; i < X_MAX_PIXEL * (Y_MAX_PIXEL); i++)
-    {
-    	//lcd_16_data(Color);
-    	LCD_SendPointPort(Color);
-    }
-#endif  
+static void _lvgl_init(){
+    static lv_disp_draw_buf_t disp_buf; // contains internal graphic buffer(s) called draw buffer(s)
+    static lv_disp_drv_t disp_drv;      // contains callback functions    
+
+    uint8_t *img_buf = malloc(RGB_LCD_H_RES * RGB_LCD_V_RES * 2);
+
+    lv_init();
+    lv_disp_draw_buf_init(&disp_buf, img_buf, NULL, RGB_LCD_H_RES * RGB_LCD_V_RES);
+    lv_disp_drv_init(&disp_drv);
+    disp_drv.hor_res = RGB_LCD_H_RES;
+    disp_drv.ver_res = RGB_LCD_V_RES;
+    disp_drv.flush_cb = _lvgl_flush_cb;
+    disp_drv.draw_buf = &disp_buf;
+    disp_drv.user_data = panel_handle;
+
+    lv_disp_t *disp = lv_disp_drv_register(&disp_drv);    
+
+
+    //tp
+
+
+    static lv_indev_drv_t indev_drv;    // Input device driver (Touch)
+    lv_indev_drv_init(&indev_drv);
+    indev_drv.type = LV_INDEV_TYPE_POINTER;
+    indev_drv.disp = disp;
+    indev_drv.read_cb = _lvgl_touch_cb;
+    indev_drv.user_data = NULL;
+
+    lv_indev_drv_register(&indev_drv);    
+
+
+    // Tick interface for LVGL (using esp_timer to generate 2ms periodic event)
+    const esp_timer_create_args_t lvgl_tick_timer_args = {
+        .callback = &_increase_lvgl_tick,
+        .name = "lvgl_tick"
+    };
+    esp_timer_handle_t lvgl_tick_timer = NULL;
+    ESP_ERROR_CHECK(esp_timer_create(&lvgl_tick_timer_args, &lvgl_tick_timer));
+    ESP_ERROR_CHECK(esp_timer_start_periodic(lvgl_tick_timer, LVGL_TICK_PERIOD_MS * 1000));  
+    example_lvgl_demo_ui();  
+
 }
 
 
 
-
-void Lcd_ClearPort_test( uint16_t Color)
+static void example_ledc_init(void)
 {
-    uint16_t i;
-    uint16_t x_end = 10;
-    uint16_t y_end = 10;
-    //Lcd_SetPosPort( 0, 0, X_MAX_PIXEL, Y_MAX_PIXEL);
-    Lcd_SetPosPort( 0, 0, x_end, y_end);
-#if 1 
-    for (i = 0; i < x_end*y_end; i++)
-    {
-    	//lcd_16_data(Color);
-    	LCD_SendPointPort(Color);
-    }
+    // Prepare and then apply the LEDC PWM timer configuration
+    ledc_timer_config_t ledc_timer = {
+        .speed_mode       = LEDC_MODE,
+        .timer_num        = LEDC_TIMER,
+        .duty_resolution  = LEDC_DUTY_RES,
+        .freq_hz          = LEDC_FREQUENCY,  // Set output frequency at 5 kHz
+        .clk_cfg          = LEDC_AUTO_CLK
+    };
+    ESP_ERROR_CHECK(ledc_timer_config(&ledc_timer));
 
-#else 
-    for (i = 0; i < X_MAX_PIXEL * (Y_MAX_PIXEL); i++)
-    {
-    	//lcd_16_data(Color);
-    	LCD_SendPointPort(Color);
-    }
-#endif  
-    
-  
+    // Prepare and then apply the LEDC PWM channel configuration
+    ledc_channel_config_t ledc_channel = {
+        .speed_mode     = LEDC_MODE,
+        .channel        = LEDC_CHANNEL,
+        .timer_sel      = LEDC_TIMER,
+        .intr_type      = LEDC_INTR_DISABLE,
+        .gpio_num       = RGB_PIN_NUM_BK_LIGHT,
+        .duty           = 0, // Set duty to 0%
+        .hpoint         = 0
+    };
+    ESP_ERROR_CHECK(ledc_channel_config(&ledc_channel));
+}
+
+void lcd_dev_set_bklight(uint8_t var_num){
+    uint32_t idx = (8191*var_num)/100;
+    printf("set_bk[%ld]\n",idx );
+    // Set duty to 50%
+    ESP_ERROR_CHECK(ledc_set_duty(LEDC_MODE, LEDC_CHANNEL, idx));
+    // Update duty to apply the new value
+    ESP_ERROR_CHECK(ledc_update_duty(LEDC_MODE, LEDC_CHANNEL));   
+    return ;
 }
 
 
-//
-void Lcd_Fill( uint16_t x_start, uint16_t y_start,
-		uint16_t x_end, uint16_t y_end, uint16_t Color)
-{
-    uint16_t i;
-    Lcd_SetPosPort( x_start, y_start, x_end, y_end);
-    for (i = 0; i < (x_end - x_start +1) * (y_end - y_start + 1); i++)
-    {
-    	//lcd_16_data(Color);
-    	LCD_SendPointPort(Color);
-    }
+static void _rgb_dev_init(){
+    ESP_LOGI(TAG, "Install RGB LCD panel driver");
+
+
+    //bk
+     // Set the LEDC peripheral configuration
+   
+    example_ledc_init();
+    lcd_dev_set_bklight(100);
+    // // Set duty to 50%
+    // ESP_ERROR_CHECK(ledc_set_duty(LEDC_MODE, LEDC_CHANNEL, LEDC_DUTY));
+    // // Update duty to apply the new value
+    // ESP_ERROR_CHECK(ledc_update_duty(LEDC_MODE, LEDC_CHANNEL));   
+
+
+    esp_lcd_rgb_panel_config_t panel_config = {
+        .data_width = 16, // RGB565 in parallel mode, thus 16bit in width
+        .psram_trans_align = 64,
+
+        .clk_src = LCD_CLK_SRC_DEFAULT,
+        .disp_gpio_num = RGB_PIN_NUM_DISP_EN,
+        .pclk_gpio_num = RGB_PIN_NUM_PCLK,
+        .vsync_gpio_num = RGB_PIN_NUM_VSYNC,
+        .hsync_gpio_num = RGB_PIN_NUM_HSYNC,
+        .de_gpio_num = RGB_PIN_NUM_DE,
+        .data_gpio_nums = {
+            RGB_PIN_NUM_DATA0,
+            RGB_PIN_NUM_DATA1,
+            RGB_PIN_NUM_DATA2,
+            RGB_PIN_NUM_DATA3,
+            RGB_PIN_NUM_DATA4,
+            RGB_PIN_NUM_DATA5,
+            RGB_PIN_NUM_DATA6,
+            RGB_PIN_NUM_DATA7,
+            RGB_PIN_NUM_DATA8,
+            RGB_PIN_NUM_DATA9,
+            RGB_PIN_NUM_DATA10,
+            RGB_PIN_NUM_DATA11,
+            RGB_PIN_NUM_DATA12,
+            RGB_PIN_NUM_DATA13,
+            RGB_PIN_NUM_DATA14,
+            RGB_PIN_NUM_DATA15,
+        },
+        .timings = {
+            .pclk_hz = RGB_LCD_PIXEL_CLOCK_HZ,
+            .h_res = RGB_LCD_H_RES,
+            .v_res = RGB_LCD_V_RES,
+            // The following parameters should refer to LCD spec
+      
+            .hsync_back_porch = 0,//43
+            .hsync_front_porch = 8,
+            .hsync_pulse_width = 2,
+            .vsync_back_porch = 0, //15
+            .vsync_front_porch = 12,//12
+            .vsync_pulse_width = 10,//10
+            .flags.pclk_active_neg = false,
+
+        },
+        .flags.fb_in_psram = true, // allocate frame buffer in PSRAM
+
+    };
+    ESP_ERROR_CHECK(esp_lcd_new_rgb_panel(&panel_config, &panel_handle));
+#if 0
+    ESP_LOGI(TAG, "Register event callbacks");
+    esp_lcd_rgb_panel_event_callbacks_t cbs = {
+        .on_vsync = NULL,
+    };
+    ESP_ERROR_CHECK(esp_lcd_rgb_panel_register_event_callbacks(panel_handle, &cbs, &disp_drv));
+#endif
+    ESP_LOGI(TAG, "Initialize RGB LCD panel");
+    ESP_ERROR_CHECK(esp_lcd_panel_reset(panel_handle));
+    ESP_ERROR_CHECK(esp_lcd_panel_init(panel_handle));
+
+
+
+
 }
 
 
-void Lcd_Fill_num(uint16_t x_start, uint16_t y_start,
-	uint16_t x_end, uint16_t y_end, uint32_t Color_len,uint8_t *Color_buf){
-    Lcd_SetPosPort( x_start, y_start, x_end, y_end);
-    lcd_spi_data_by_num(Color_buf, Color_len);
 
+
+
+
+void lcd_dev_init(){
+    ESP_LOGI(TAG, "lcd_dev_init");
+    _rgb_dev_init();
+    _lvgl_init();
+
+    //tp
+    lcd_dev_tp_init();
+
+
+
+    return ;
 }
 
-uint32_t lcd_dev_init(){
-	printf("22lcd_init*************************\n");
-	printf("111lcd_init*************************\n");
-	printf("11lcd_init*************************\n");
-	_vspi_init();
-    _096lcd();
-	return 0;
+void lcd_dev_task(){
+
+    lv_timer_handler();
+    lcd_dev_tp_scan_tp();
+    return ;
 }
 

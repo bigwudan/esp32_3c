@@ -8,12 +8,6 @@
 #ifndef _BLUETOOTH_H
 #define _BLUETOOTH_H
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
-
-/* Attributes State Machine */
 enum
 {
     IDX_SVC,
@@ -30,6 +24,10 @@ enum
     HRS_IDX_NB,
 };
 
+
 void bluetooth_app(void);
+
+void blue_send();
+
 
 #endif

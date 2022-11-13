@@ -1,3 +1,30 @@
+/* Scan Example
+
+   This example code is in the Public Domain (or CC0 licensed, at your option.)
+
+   Unless required by applicable law or agreed to in writing, this
+   software is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+   CONDITIONS OF ANY KIND, either express or implied.
+*/
+
+/*
+    This example shows how to use the All Channel Scan or Fast Scan to connect
+    to a Wi-Fi network.
+
+    In the Fast Scan mode, the scan will stop as soon as the first network matching
+    the SSID is found. In this mode, an application can set threshold for the
+    authentication mode and the Signal strength. Networks that do not meet the
+    threshold requirements will be ignored.
+
+    In the All Channel Scan mode, the scan will end only after all the channels
+    are scanned, and connection will start with the best network. The networks
+    can be sorted based on Authentication Mode or Signal Strength. The priority
+    for the Authentication mode is:  WPA2 > WPA > WEP > Open
+*/
+
+
+
+
 #include "esp_log.h"
 
 //wifi
@@ -20,9 +47,8 @@
 #include "wifi_mod.h"
 
 /* Set the SSID and Password via project configuration, or can set directly here */
-#define DEFAULT_SSID "TP-LINK_61D2"
-#define DEFAULT_PWD "datuo123456"
-
+#define DEFAULT_SSID "MERCURY_wushiyuan"
+#define DEFAULT_PWD "68251857"
 
 
 
@@ -67,122 +93,6 @@ static EventGroupHandle_t _wifi_event_group; //声明一个事件组，事件组
 
 static const char *TAG = "wifi_mod";
 
-
-#define MQTT_URL "120.46.207.95"
-#define MQTT_CLIENT_ID "test_no_0"
-#define MQTT_USERNAME "534093"
-#define MQTT_PASSWORD "version=2018-10-31&res=products%2F534093%2Fdevices%2Ftest_no_0&et=1670377192&method=md5&sign=z2rrvoyuHyYTyxT3zxrrgg%3D%3D"
-#define MQTT_PORT 1883
-
-static void log_error_if_nonzero(const char *message, int error_code)
-{
-    if (error_code != 0) {
-        ESP_LOGE(TAG, "Last error %s: 0x%x", message, error_code);
-    }
-}
-
-
-/*
- * @brief Event handler registered to receive MQTT events
- *
- *  This function is called by the MQTT client event loop.
- *
- * @param handler_args user data registered to the event.
- * @param base Event base for the handler(always MQTT Base in this example).
- * @param event_id The id for the received event.
- * @param event_data The data for the event, esp_mqtt_event_handle_t.
- */
-static void _mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_t event_id, void *event_data)
-{
-    printf("mqtt_event_handler\n");
-    ESP_LOGD(TAG, "Event dispatched from event loop base=%s, event_id=%d", base, event_id);
-    esp_mqtt_event_handle_t event = event_data;
-    esp_mqtt_client_handle_t client = event->client;
-    int msg_id = 0;
-    switch ((esp_mqtt_event_id_t)event_id) {
-    case MQTT_EVENT_CONNECTED:
-        ESP_LOGI(TAG, "MQTT_EVENT_CONNECTED");
-
-
-
-        //注册命令
-        //msg_id = esp_mqtt_client_subscribe(client, "$sys/534093/test_no_0/cmd/request/+", 0);
-
-        msg_id = esp_mqtt_client_subscribe(client, "topic1", 0);
-        
-        ESP_LOGI(TAG, "sent subscribe successful, msg_id=%d", msg_id);
-#if 0     
-        msg_id = esp_mqtt_client_publish(client, "$sys/534093/test_no_0/dp/post/json", "{\"id\":123,\"dp\":{\"temp\":[{\"v\":99}]}}", 0, 0, 0);
-        ESP_LOGI(TAG, "publish msg_id[%d]\n", msg_id);
-
-#endif        
-        break;
-    case MQTT_EVENT_DISCONNECTED:
-        ESP_LOGI(TAG, "MQTT_EVENT_DISCONNECTED");
-        break;
-
-    case MQTT_EVENT_SUBSCRIBED:
-        ESP_LOGI(TAG, "MQTT_EVENT_SUBSCRIBED, msg_id=%d", event->msg_id);
-        //msg_id = esp_mqtt_client_publish(client, "/topic/qos0", "data", 0, 0, 0);
-        ESP_LOGI(TAG, "sent publish successful, msg_id=%d", msg_id);
-        break;
-    case MQTT_EVENT_UNSUBSCRIBED:
-        ESP_LOGI(TAG, "MQTT_EVENT_UNSUBSCRIBED, msg_id=%d", event->msg_id);
-        break;
-    case MQTT_EVENT_PUBLISHED:
-        ESP_LOGI(TAG, "MQTT_EVENT_PUBLISHED, msg_id=%d", event->msg_id);
-        break;
-    case MQTT_EVENT_DATA:
-        ESP_LOGI(TAG, "MQTT_EVENT_DATA");
-        printf("TOPIC=%.*s\r\n", event->topic_len, event->topic);
-        printf("DATA=%.*s\r\n", event->data_len, event->data);
-        break;
-    case MQTT_EVENT_ERROR:
-        ESP_LOGI(TAG, "MQTT_EVENT_ERROR");
-        if (event->error_handle->error_type == MQTT_ERROR_TYPE_TCP_TRANSPORT) {
-            log_error_if_nonzero("reported from esp-tls", event->error_handle->esp_tls_last_esp_err);
-            log_error_if_nonzero("reported from tls stack", event->error_handle->esp_tls_stack_err);
-            log_error_if_nonzero("captured as transport's socket errno",  event->error_handle->esp_transport_sock_errno);
-            ESP_LOGI(TAG, "Last errno string (%s)", strerror(event->error_handle->esp_transport_sock_errno));
-
-        }
-        break;
-    default:
-        ESP_LOGI(TAG, "Other event id:%d", event->event_id);
-        break;
-    }
-}
-
-static void _mqtt_app_start(void)
-{
-    esp_mqtt_client_config_t mqtt_cfg = {
-        .host = MQTT_URL,
-        .client_id = MQTT_CLIENT_ID,
-        .username = MQTT_USERNAME,
-        .password=MQTT_PASSWORD,
-        .port=MQTT_PORT
-    };
-
-
-    esp_mqtt_client_handle_t client = esp_mqtt_client_init(&mqtt_cfg);
-    // /* The last argument may be used to pass data to the event handler, in this example mqtt_event_handler */
-    esp_mqtt_client_register_event(client, ESP_EVENT_ANY_ID, _mqtt_event_handler, NULL);
-    esp_mqtt_client_start(client);
-}
-
-static void mqtt_connect_handler(void* arg, esp_event_base_t event_base,
-                            int32_t event_id, void* event_data)
-{
-   _mqtt_app_start();
-}
-
-
-void _mqtt_app(){
-    // ESP_LOGI(TAG, "_mqtt_app-------------connection\n");
-    // ESP_ERROR_CHECK(esp_event_handler_register(IP_EVENT, IP_EVENT_STA_GOT_IP, &mqtt_connect_handler, NULL));
-    _mqtt_app_start();
-    return ;
-}
 
 
 

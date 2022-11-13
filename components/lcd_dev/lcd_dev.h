@@ -2,34 +2,26 @@
 #define _LCD_DEV_H
 
 #include <stdio.h>
+typedef struct{
+    uint16_t x_pos;
+    uint16_t y_pos;
+    uint8_t press_state; // 0放开 1按下
 
 
-#define PINK 0xD2F5
-#define BLUE 0X03bD
-#define RED 0xF882
-#define YELLOW 0xFFE0
-#define WHITE 0xffff
-#define BLACK 0x0000
+}tp_data_tag;
 
-#define X_MAX_PIXEL 240
-#define Y_MAX_PIXEL 240
+void lcd_dev_init();
 
-#define SPI_SPEED_RAM 20
-#define SPI_SPEED X_MAX_PIXEL*(SPI_SPEED_RAM)
-#define SPI_SPEED_BUF_NUM SPI_SPEED*2
+void lcd_dev_task();
 
-uint32_t lcd_dev_init();
-
-void Lcd_Fill( uint16_t x_start, uint16_t y_start,
-		uint16_t x_end, uint16_t y_end, uint16_t Color);
+void lcd_dev_tp_init();
 
 
-void Lcd_ClearPort( uint16_t Color);
 
+//扫描
+void lcd_dev_tp_scan_tp();
 
-void Lcd_ClearPort_test( uint16_t Color);
+tp_data_tag *lcd_dev_tp_get_data();
 
-
-void Lcd_Fill_num(uint16_t x_start, uint16_t y_start,
-	uint16_t x_end, uint16_t y_end, uint32_t Color_len,uint8_t *Color_buf);
+void lcd_dev_set_bklight(uint8_t var_num);
 #endif
