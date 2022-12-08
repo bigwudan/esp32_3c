@@ -7,6 +7,8 @@
 #include "freertos/task.h"
 #include "driver/spi_master.h"
 #include "driver/gpio.h"
+#include <time.h>
+#include <sys/time.h>
 
 #include "esp_log.h"
 
@@ -128,7 +130,7 @@ typedef enum
     TX_TIMEOUT,
 }States_t;
 
-#define RX_TIMEOUT_VALUE                            1000
+#define RX_TIMEOUT_VALUE                            9000
 #define BUFFER_SIZE                                 64 // Define the payload size here
 
 #define LedToggle() do{ESP_LOGI(TAG, "[%s][%d]", __func__, __LINE__);}while(0)
@@ -179,7 +181,8 @@ static void OnRxDone( uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr 
     }
     printf("\n");
 
-    TX_Buffer[0] = 0x55;
+#if 0
+    TX_Buffer[0] = 0x9F;
     TX_Buffer[1] = 'I';
     TX_Buffer[2] = 0x00;
     TX_Buffer[3] = payload[3]; 
@@ -188,26 +191,50 @@ static void OnRxDone( uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr 
     TX_Buffer[4]=crc_value>>8;
     TX_Buffer[5]=crc_value;
     Radio.Send( TX_Buffer, 6);
+#endif
+    memcpy(TX_Buffer, payload, size);
 
+    time_t t;
+    struct tm *area;
+
+    t = time(NULL);
+    area = localtime(&t);
+    TX_Buffer[size++] = area->tm_hour;
+    TX_Buffer[size++] = area->tm_min;
+    TX_Buffer[size++] = area->tm_sec;    
+
+    printf("lora sx:");
+    for(int i=0; i<size; i++){
+        printf("[%02X]",TX_Buffer[i] );
+
+    }
+    printf("\n");
+
+    Radio.Send( TX_Buffer, size);
 
   
 }
 
 static void OnTxTimeout( void )
 {
-   ESP_LOGI("xx", "[%s][%d]", __func__, __LINE__);
+    Radio.Standby();
+    Radio.Rx( RX_TIMEOUT_VALUE ); //½øÈë½ÓÊÕ
 }
 
 static void OnRxTimeout( void )
 {
     ESP_LOGI("xx", "[%s][%d]", __func__, __LINE__); 
+    Radio.Standby();
+    Radio.Rx( RX_TIMEOUT_VALUE ); //½øÈë½ÓÊÕ
+
 }
 
 static void OnRxError( void )
 {
     //printf("[%s][%d]\n", );
     ESP_LOGI("xx", "[%s][%d]", __func__, __LINE__);
-  
+    Radio.Standby();
+    Radio.Rx( RX_TIMEOUT_VALUE ); //½øÈë½ÓÊÕ  
 }
 
 static void lora_task_worker(void *aContext){

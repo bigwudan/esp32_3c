@@ -43,23 +43,26 @@ static const char TAG[] = "app_main";
 #if 1
 int show_time(void)
 {
-    // time_t t;
-    // struct tm *gmt, *area;
-    // tzset(); /* tzset()设置时区*/
-    // t = time(NULL);
-    // area = localtime(&t);
-    // printf("Local time is: %s", asctime(area));
-    // gmt = gmtime(&t);
-    // printf("GMT is: %s", asctime(gmt));
-    lorawan_wg_init();
+    time_t t;
+    struct tm *gmt, *area;
+    tzset(); /* tzset()设置时区*/
+    t = time(NULL);
+    area = localtime(&t);
+    printf("Local time is: %s", asctime(area));
+    gmt = gmtime(&t);
+    printf("GMT is: %s", asctime(gmt));
+    
     return 0;
 }
 
+
+
+
 void show_task(){
-    // time_t t =0;
-    // struct tm *gmt;    
-    // gmt = gmtime(&t);
-    // printf("GMT is: %s", asctime(gmt));
+    time_t t =0;
+    struct tm *gmt;    
+    gmt = gmtime(&t);
+    printf("GMT is: %s", asctime(gmt));
     struct timeval ts_now;
     gettimeofday(&ts_now, NULL);
     //ESP_LOGI(TAG, "[%lds][%lds]", ts_now.tv_sec, ts_now.tv_usec);
@@ -197,7 +200,8 @@ void app_main(void)
         
         lcd_dev_task();
         lora_app_process();
-
+        //show_task();
+        //show_time();
         vTaskDelay(pdMS_TO_TICKS(5));
     }
 #else
